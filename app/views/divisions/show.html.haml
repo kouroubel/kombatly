@@ -1,0 +1,63 @@
+.container.mt-4
+  .card.shadow
+    .card-header
+      %h2.mb-0= "#{@division.event.name} #{@division.name}"
+
+    .card-body
+      %p
+        %strong Event:
+        = link_to @division.event.name, @division.event
+
+      %p
+        %strong Age Range:
+        = "#{@division.min_age} – #{@division.max_age}"
+
+      %p
+        %strong Weight Range:
+        = "#{@division.min_weight} – #{@division.max_weight} kg"
+
+      %p
+        %strong Belt:
+        = @division.belt
+
+      %p
+        %strong Sex:
+        = @division.sex
+        
+      %p
+        %strong Cost (€):
+        = @division.cost
+
+      .mt-3
+        - if current_user.team? || current_user.admin?
+          = link_to "Register Athletes", new_event_division_registration_path(@event, @division), class: "btn btn-success"
+        = link_to "Edit Division", edit_event_division_path(@division.event, @division), class: "btn btn-primary me-2"
+        = link_to "Back to Event", @division.event, class: "btn btn-secondary"
+        = link_to "Delete", event_division_path(@division.event, @division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger ms-2"
+
+  .mt-4
+    %h3 Eligible Athletes
+    %table.table.table-striped.table-bordered
+      %thead
+        %tr
+          %th Name
+          %th Birthdate
+          %th Weight (kg)
+          %th Belt
+          %th Sex
+          %th Team
+          %th Registered
+      %tbody
+        - @eligible_athletes.each do |athlete|
+          %tr
+            %td= athlete.fullname
+            %td= athlete.birthdate
+            %td= athlete.weight
+            %td= athlete.belt
+            %td= athlete.sex
+            %td= athlete.team.name
+            %td.text-center
+              - if @division.athletes.include?(athlete)
+                %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
+              - else
+                %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg

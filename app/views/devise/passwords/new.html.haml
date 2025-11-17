@@ -1,0 +1,13 @@
+%h2.text-2xl.font-bold.mb-6 Forgot your password?
+
+= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "space-y-4" }) do |f|
+  = render "devise/shared/error_messages", resource: resource
+
+  .field
+    = f.label :email, class: "block text-sm font-medium text-gray-700"
+    = f.email_field :email, autofocus: true, autocomplete: "email", class: "mt-1 block w-full border border-gray-300 px-2 py-1"
+
+  .actions
+    = f.submit "Send me reset password instructions", class: "w-full py-2 px-4 bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none"
+
+= render "devise/shared/links"

@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  bout: one
+  athlete_id: 1
+  points: 1
+  technique: MyString
+
+two:
+  bout: two
+  athlete_id: 1
+  points: 1
+  technique: MyString

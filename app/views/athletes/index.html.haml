@@ -1,0 +1,26 @@
+.container.mt-5
+  %h1.mb-4 Athletes
+  = link_to "New Athlete", new_athlete_path, class: "btn btn-primary mb-3"
+
+  %table.table.table-striped.table-bordered
+    %thead
+      %tr
+        %th Full Name
+        %th Team
+        %th Birthdate
+        %th Weight
+        %th Belt
+        %th Sex
+        %th Actions
+    %tbody
+      - @athletes.each do |athlete|
+        %tr
+          %td= link_to athlete.fullname, athlete
+          %td= athlete.team.name
+          %td= athlete.birthdate.strftime("%d.%m.%Y")
+          %td= athlete.weight
+          %td= athlete.belt
+          %td= athlete.sex
+          %td
+            = link_to "Edit", edit_athlete_path(athlete), class: "btn btn-sm btn-primary me-1"
+            = link_to "Delete", athlete_path(athlete), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"

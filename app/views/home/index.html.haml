@@ -1,0 +1,32 @@
+.container.mt-5
+  .row.justify-content-center
+    .col-lg-8.text-center
+
+      %h1.display-4.mb-4
+        Welcome to BoutCraft Combat Sports
+
+      %p.lead.text-muted.mb-5
+        Manage athletes, track progress, assign belts, schedule matches —
+        everything your academy needs, all in one place.
+
+      = link_to "Log In", new_user_session_path, class: "btn btn-primary btn-lg px-4 me-2"
+      = link_to "Sign Up", new_user_registration_path, class: "btn btn-outline-primary btn-lg px-4"
+
+  .row.mt-5
+    .col-md-4.text-center
+      .card.shadow-sm.p-4
+        %i.bi.bi-people-fill.display-5.text-primary
+        %h4.mt-3 Manage Athletes
+        %p.text-muted Easily add, edit, and organize fighters in your academy.
+
+    .col-md-4.text-center.mt-4.mt-md-0
+      .card.shadow-sm.p-4
+        %i.bi.bi-trophy-fill.display-5.text-primary
+        %h4.mt-3 Track Competitions
+        %p.text-muted Keep a history of fights, results, and belt promotions.
+
+    .col-md-4.text-center.mt-4.mt-md-0
+      .card.shadow-sm.p-4
+        %i.bi.bi-calendar-event-fill.display-5.text-primary
+        %h4.mt-3 Create Schedules
+        %p.text-muted Build training plans and match schedules effortlessly.

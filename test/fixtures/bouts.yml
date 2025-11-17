@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  division: one
+  round: 1
+  athlete_a_id: 1
+  athlete_b_id: 1
+  winner_id: 1
+  score_a: 1
+  score_b: 1
+
+two:
+  division: two
+  round: 1
+  athlete_a_id: 1
+  athlete_b_id: 1
+  winner_id: 1
+  score_a: 1
+  score_b: 1

@@ -1,0 +1,47 @@
+.container.mt-5
+  %h1.mb-4 Dashboard
+  %p.lead Welcome back, #{current_user.fullname}!
+
+  .row.mt-4
+    .col-md-4
+      .card.shadow-sm.p-3.mb-3.text-center
+        %h5 Athletes
+        %h2.mb-0= @athletes_count
+
+    - if current_user.admin?
+      .col-md-4
+        .card.shadow-sm.p-3.mb-3.text-center
+          %h5 Teams
+          %h2.mb-0= @teams_count
+
+  .row.mt-4
+    - @upcoming_events.each do |ue|
+      .col-12.mb-4
+        .card.shadow-sm
+          .card-body
+            %h5.card-title= ue[:event].name
+            %p.text-muted= ue[:event].start_date.strftime('%b %d, %Y')
+
+            %p.mb-1 Registrations: #{ue[:registrations_count]}
+            %p.mb-1 Total Fees: €#{ue[:total_amount]}
+
+            - if ue[:divisions_summary].any?
+              %h6.mt-3 Per Division Summary
+              %table.table.table-bordered.table-sm
+                %thead
+                  %tr
+                    %th Division
+                    %th Registered Athletes
+                    %th Total Fees (€)
+                %tbody
+                  - ue[:divisions_summary].each do |div_summary|
+                    %tr
+                      %td= div_summary[:division].name
+                      %td= div_summary[:registrations_count]
+                      %td= div_summary[:total_amount]
+
+            - if current_user.team? && ue[:athlete_division_pairs].any?
+              %h6.mt-3 Registered Athletes (Your Team)
+              %ul.mb-0
+                - ue[:athlete_division_pairs].each do |pair|
+                  %li= "#{pair[:athlete].fullname} — #{pair[:division].name} (#{pair[:athlete].team.name})"

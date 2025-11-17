@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  event: one
+  min_age: 1
+  max_age: 1
+  min_weight: 9.99
+  max_weight: 9.99
+  belt: MyString
+
+two:
+  event: two
+  min_age: 1
+  max_age: 1
+  min_weight: 9.99
+  max_weight: 9.99
+  belt: MyString

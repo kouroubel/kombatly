@@ -1,0 +1,28 @@
+.container.mx-auto.mt-10.max-w-sm
+  .bg-white.shadow-md.rounded-lg.p-6
+    %h2.text-2xl.font-bold.mb-6.text-center Sign up
+
+    = form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-4" }) do |f|
+      = devise_error_messages!
+
+      .field
+        = f.label :fullname, class: "block text-sm font-medium text-gray-700"
+        = f.text_field :fullname, autofocus: true, class: "mt-1 block w-full border border-gray-300 px-2 py-1 rounded"
+
+      .field
+        = f.label :email, class: "block text-sm font-medium text-gray-700"
+        = f.email_field :email, class: "mt-1 block w-full border border-gray-300 px-2 py-1 rounded"
+
+      .field
+        = f.label :password, class: "block text-sm font-medium text-gray-700"
+        = f.password_field :password, autocomplete: "new-password", class: "mt-1 block w-full border border-gray-300 px-2 py-1 rounded"
+
+      .field
+        = f.label :password_confirmation, class: "block text-sm font-medium text-gray-700"
+        = f.password_field :password_confirmation, autocomplete: "new-password", class: "mt-1 block w-full border border-gray-300 px-2 py-1 rounded"
+
+      .actions
+        = f.submit "Sign up", class: "w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 focus:outline-none"
+
+      = render "devise/shared/links"
+

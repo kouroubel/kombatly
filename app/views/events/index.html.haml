@@ -1,0 +1,24 @@
+%h1.mb-4 Events
+
+= link_to "New Event", new_event_path, class: "btn btn-success mb-3"
+
+%table.table.table-striped.table-bordered
+  %thead
+    %tr
+      %th Name
+      %th Location
+      %th Date
+      %th Description
+      %th 
+  %tbody
+    - @events.each do |event|
+      %tr
+        %td 
+          = link_to event.name, event_path(event)
+        %td= event.location
+        %td= event.start_date.strftime("%d.%m.%Y")
+        %td= truncate(event.description, length: 50)
+        %td
+          .d-flex.gap-2
+            = link_to "Edit", edit_event_path(event), class: "btn btn-sm btn-primary"
+            = link_to "Delete", event_path(event), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"

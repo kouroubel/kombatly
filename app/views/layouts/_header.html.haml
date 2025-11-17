@@ -1,0 +1,44 @@
+%nav.navbar.navbar-dark.bg-dark.navbar-expand-lg.py-2.px-5
+  .container-fluid
+    %a.navbar-brand.fw-bold.py-1{ href: root_path } BoutCraft
+
+    %button.navbar-toggler{ type: "button", "data-bs-toggle" => "collapse", "data-bs-target" => "#navbarNav", "aria-controls" => "navbarNav", "aria-expanded" => "false", "aria-label" => "Toggle navigation" }
+      %span.navbar-toggler-icon
+
+    #navbarNav.collapse.navbar-collapse
+      - if user_signed_in?
+        %ul.navbar-nav.me-auto.mb-0
+          %li.nav-item
+            = link_to teams_path, class: "nav-link text-white px-2 py-1" do
+              %i.fa-solid.fa-people-group.me-1
+              Teams
+          %li.nav-item
+            = link_to athletes_path, class: "nav-link text-white px-2 py-1" do
+              %i.fa-solid.fa-person-running.me-1
+              Athletes
+          %li.nav-item
+            = link_to events_path, class: "nav-link text-white px-2 py-1" do
+              %i.fa-solid.fa-calendar-days.me-1
+              Events
+          %li.nav-item
+            = link_to users_path, class: "nav-link text-white px-2 py-1" do
+              %i.fa-solid.fa-users.me-1
+              Users
+      - else
+        %ul.navbar-nav.me-auto.mb-0
+          / keep an empty UL for alignment when logged out
+
+      %ul.navbar-nav.ms-auto.mb-0.align-items-center
+        - if user_signed_in?
+          %li.nav-item.me-2
+            %span.nav-link.text-white.py-1 Hello, #{current_user.fullname}!
+          %li.nav-item
+            = link_to "Sign out", destroy_user_session_path,
+                      method: :delete,
+                      data: { turbo_method: :delete, confirm: "Are you sure you want to sign out?" },
+                      class: "btn btn-outline-light btn-sm"
+        - else
+          %li.nav-item.me-2
+            = link_to "Sign in", new_user_session_path, class: "btn btn-light btn-sm"
+          %li.nav-item
+            = link_to "Sign up", new_user_registration_path, class: "btn btn-outline-light btn-sm"
