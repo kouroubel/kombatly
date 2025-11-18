@@ -19,8 +19,9 @@ class HomeController < ApplicationController
 
     @upcoming_events = upcoming.map do |event|
       # Registrations for this event
-      regs = Registration.joins(:division, :athlete)
-                         .where(divisions: { event_id: event.id })
+      # regs = Registration.joins(:division, :athlete)
+      #                   .where(divisions: { event_id: event.id })
+      regs = event.registrations.includes(:athlete, :division)
 
       # Filter by team for team admins
       regs = regs.where(athletes: { team_id: current_user.team.id }) if current_user.team?

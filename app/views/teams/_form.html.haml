@@ -1,3 +1,5 @@
+= render "shared/errors", obj: @team
+
 .container.mt-5.max-w-lg
   .card.shadow
     .card-body
@@ -7,7 +9,7 @@
           = f.text_field :name, class: "form-control"
       
         - if current_user.role == "admin"
-          - available_team_admins = User.where(role: "team").where.not(id: Team.select(:team_admin_id))
+          - available_team_admins = User.where(role: "team")
           .mb-3
             = f.label :team_admin_id, "Team Admin", class: "form-label"
             = f.collection_select :team_admin_id,
@@ -17,8 +19,5 @@
                                   { prompt: "Select a team admin" },
                                   class: "form-select"
 
-        // - else
-        //   = f.hidden_field :team_admin_id, value: current_user.id
-      
         .actions
           = f.submit class: "btn btn-primary"

@@ -31,9 +31,17 @@
       .mt-3
         - if current_user.team? || current_user.admin?
           = link_to "Register Athletes", new_event_division_registration_path(@event, @division), class: "btn btn-success"
-        = link_to "Edit Division", edit_event_division_path(@division.event, @division), class: "btn btn-primary me-2"
+          
+        - if current_user.admin?
+          = button_to "Generate Bracket",
+          generate_bracket_event_division_path(@division.event, @division),
+          method: :post,
+          class: "btn btn-warning",
+          data: { confirm: "Are you sure you want to generate the bracket?" }
+          
+        = link_to "Edit Division", edit_event_division_path(@division.event, @division), class: "btn btn-primary"
         = link_to "Back to Event", @division.event, class: "btn btn-secondary"
-        = link_to "Delete", event_division_path(@division.event, @division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger ms-2"
+        = link_to "Delete", event_division_path(@division.event, @division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger"
 
   .mt-4
     %h3 Eligible Athletes
@@ -61,3 +69,79 @@
                 %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
               - else
                 %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg
+
+
+  %h3= @division.name
+  %h5 Bracket
+  
+  .row
+    - @rounds.each do |round_number, bouts|
+      .col
+        %h6.text-center Round #{round_number}
+        - bouts.each do |bout|
+          .card.mb-2.p-2
+            %p.mb-1
+              = bout.athlete_a.fullname
+              %small= " (#{bout.athlete_a.team.name})" if bout.athlete_a.team
+              vs
+              = bout.athlete_b.fullname
+              %small= " (#{bout.athlete_b.team.name})" if bout.athlete_b.team
+            - if bout.winner
+              %p.text-success.mb-0 Winner: #{bout.winner.fullname}
+            - else
+              %p.text-muted.mb-0 Pending
+
+
+
+  .row.bracket
+    - @bouts_by_round.each do |round, bouts|
+      .col.round
+        %h5.text-center Round #{round}
+  
+        - bouts.each do |bout|
+          .bout-card
+            .slot
+              = bout.athlete_a&.fullname || "TBD"
+              %small= " (#{bout.athlete_a.team.name})" if bout.athlete_a.team
+            .slot
+              = bout.athlete_b&.fullname || "TBD"
+              %small= " (#{bout.athlete_b.team.name})" if bout.athlete_b.team
+            - if bout.winner
+              .winner
+                Winner: #{bout.winner.fullname}
+
+
+
+  // .bracket-container{ data: { controller: "drag" } }
+  //   %p This is a test for Stimulus controller.
+
+  .bracket-container{ data: { controller: "drag" } }
+    - @bouts_by_round.each do |round, bouts|
+      .round-column{ data: { round: round } }
+        %h5.mb-3 Round #{round}
+  
+        - bouts.each do |bout|
+          .match-box{ id: "bout-#{bout.id}", data: { bout_id: bout.id } }
+            .slot.athlete-slot.slot-a{ 
+              data: { drag_target: "slot", athlete_id: bout.athlete_a_id },
+              draggable: "true"
+            }
+              - if bout.athlete_a
+                = bout.athlete_a.fullname
+                %br/
+                %small= bout.athlete_a.team.name
+              - else
+                = "TBD"
+            .slot.athlete-slot.slot-b{ 
+              data: { drag_target: "slot", athlete_id: bout.athlete_b_id },
+              draggable: "true"
+            }
+              - if bout.athlete_b
+                = bout.athlete_b.fullname
+                %br/
+                %small= bout.athlete_b.team.name
+              - else
+                = "TBD"
+
+
+

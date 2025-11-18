@@ -50,7 +50,7 @@ class AthletesController < ApplicationController
   end
 
   def destroy
-    @athlete.destroys
+    @athlete.destroy
     redirect_to athletes_path, notice: "Athlete deleted"
   end
 

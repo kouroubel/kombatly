@@ -10,6 +10,7 @@ Rails.application.routes.draw do
 
   devise_for :users
   resources :users, only: [:index, :edit, :update, :destroy]
+  resources :teams
   
   resources :athletes do 
     get 'events/:event_id/register', to: 'registrations#new_for_athlete', as: 'register_for_event'
@@ -19,28 +20,18 @@ Rails.application.routes.draw do
   resources :events do
     resources :divisions do
       resources :registrations, only: [:new, :create]
+      member do
+        post :generate_bracket
+      end
     end
   end
-  resources :teams
   
-  # Admin-only resources
-# namespace :admin do
-#     resources :events do
-#       resources :divisions
-#     end
-
-#     # Add global access for admins to manage athletes and registrations
-#     resources :athletes
-#     resources :registrations, only: [:index, :new, :create, :destroy]
-#   end
-
-  # Team admin dashboard
-  # namespace :team do
-  #   resources :teams, only: [:show, :edit, :update]
-  #   resources :athletes
-  #   resources :registrations, only: [:index, :new, :create, :destroy]
-  # end
-
+  
+  resources :bouts, only: [] do
+    # swap athletes **within this bout**
+    patch :swap_athletes, on: :member
+  end
+  post "/bouts/swap", to: "bouts#swap", as: :swap_bouts
 
 
 end

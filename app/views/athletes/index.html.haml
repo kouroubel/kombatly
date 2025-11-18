@@ -23,4 +23,4 @@
           %td= athlete.sex
           %td
             = link_to "Edit", edit_athlete_path(athlete), class: "btn btn-sm btn-primary me-1"
-            = link_to "Delete", athlete_path(athlete), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"
+            = link_to "Delete", athlete_path(athlete), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"

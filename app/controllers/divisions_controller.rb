@@ -35,6 +35,8 @@ class DivisionsController < ApplicationController
   
   def show
     @event = @division.event
+    @rounds = @division.bouts.order(:round).group_by(&:round)
+    @bouts_by_round = @division.bouts.order(:round, :id).group_by(&:round)
   
     @eligible_athletes = Athlete
       .joins(:team)
@@ -47,6 +49,19 @@ class DivisionsController < ApplicationController
   def destroy
     @division.destroy
     redirect_to @event, notice: "Division deleted successfully."
+  end
+  
+  def generate_bracket
+    @division = Division.find(params[:id])
+  
+    if @division.bouts.exists?
+      flash[:alert] = "Bracket already generated."
+    else
+      @division.generate_first_round_bouts # defined in model
+      flash[:notice] = "Bracket successfully generated."
+    end
+  
+    redirect_to event_division_path(@division.event, @division)
   end
 
   private

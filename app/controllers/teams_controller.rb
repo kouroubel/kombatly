@@ -43,6 +43,7 @@ class TeamsController < ApplicationController
   
   def destroy
     @team.destroy
+    debugger
     redirect_to teams_path, notice: "Team deleted"
   end
 

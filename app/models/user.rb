@@ -5,7 +5,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable, :trackable
          
   # # Team admin
-  # has_one :team, foreign_key: :team_admin_id, dependent: :destroy, inverse_of: :team_admin
+  has_one :team, foreign_key: :team_admin_id, dependent: :nullify
   # # Athlete user
   belongs_to :team, optional: true
   
