@@ -23,11 +23,20 @@ export default class extends Controller {
   }
 
   dragStart(event) {
+    // Check if tournament has started by looking for winner badges (not just winner-slot class from view)
+    const anyWinnerBadge = document.querySelector('.winner-badge')
+    
+    if (anyWinnerBadge) {
+      event.preventDefault()
+      alert("Cannot swap athletes - tournament has already started!")
+      return
+    }
+    
     this.dragged = event.currentTarget
     event.dataTransfer.effectAllowed = "move"
     event.currentTarget.classList.add("dragging")
   }
-
+  
   dragEnd(event) {
     event.currentTarget.classList.remove("dragging")
     this.slotTargets.forEach(slot => {
@@ -154,7 +163,7 @@ export default class extends Controller {
     const boutId = athleteSlot.closest(".match-box").dataset.boutId
     const matchBox = athleteSlot.closest(".match-box")
     
-    if (!athleteId || athleteId === "null") {
+    if (!athleteId || athleteId === "null" || athleteId === "") {
       alert("Cannot select TBD as winner")
       return
     }
@@ -228,8 +237,8 @@ export default class extends Controller {
         await this.removeAthleteFromNextRound(data.next_bout_id, oldWinnerId)
       }
       
-      // Update next round with new winner (only if next_bout_id exists)
-      if (data.next_bout_id && data.next_round) {
+      // Update next round with new winner (bout already exists in DOM)
+      if (data.next_bout_id) {
         await this.updateNextRoundBout(data.next_bout_id, athleteId, athleteName, data)
       }
       
@@ -265,7 +274,7 @@ export default class extends Controller {
     const allSlots = nextBoutElement.querySelectorAll('.athlete-slot')
     const anyFilled = Array.from(allSlots).some(slot => {
       const id = slot.dataset.athleteId
-      return id && id !== 'null' && !slot.textContent.includes('TBD')
+      return id && id !== 'null' && id !== '' && !slot.textContent.includes('TBD')
     })
     
     if (!anyFilled) {
@@ -275,50 +284,77 @@ export default class extends Controller {
   }
   
   async updateNextRoundBout(nextBoutId, athleteId, athleteName, data) {
-    try {
-      // Find the next round bout element
-      let nextBoutElement = document.querySelector(`[data-bout-id="${nextBoutId}"]`)
-      
-      if (!nextBoutElement) {
-        // Create the next round bout dynamically
-        await this.createNextRoundBout(nextBoutId, data.next_round, athleteId, athleteName, data)
-        return
+    // Find the next round bout element (it already exists!)
+    const nextBoutElement = document.querySelector(`[data-bout-id="${nextBoutId}"]`)
+    
+    if (!nextBoutElement) {
+      console.error("Next bout not found in DOM:", nextBoutId)
+      return
+    }
+    
+    // Check if this is the champion round (has champion-slot class)
+    const isChampionRound = nextBoutElement.querySelector('.champion-slot')
+    
+    // Find the empty slot (TBD) or slot with matching athlete_id
+    const slots = nextBoutElement.querySelectorAll('.athlete-slot')
+    let targetSlot = null
+    
+    slots.forEach(slot => {
+      const id = slot.dataset.athleteId
+      if (id === athleteId.toString()) {
+        // Already placed
+        targetSlot = slot
+      } else if ((!id || id === 'null' || id === '' || slot.textContent.includes('TBD')) && !targetSlot) {
+        // Empty slot - use this
+        targetSlot = slot
       }
+    })
+    
+    if (targetSlot && targetSlot.dataset.athleteId !== athleteId.toString()) {
+      // Update the slot with winner info
+      targetSlot.dataset.athleteId = athleteId
+      const teamName = data.winner_team || "Advanced"
       
-      // Find the empty slot (TBD) or slot with matching athlete_id
-      const slots = nextBoutElement.querySelectorAll('.athlete-slot')
-      let targetSlot = null
+      // Remove any winner-slot class to show correct color ribbon
+      targetSlot.classList.remove('winner-slot')
       
-      slots.forEach(slot => {
-        const id = slot.dataset.athleteId
-        if (id === athleteId.toString()) {
-          targetSlot = slot
-        } else if ((!id || id === 'null' || slot.textContent.includes('TBD')) && !targetSlot) {
-          targetSlot = slot
-        }
-      })
-      
-      if (targetSlot && targetSlot.dataset.athleteId !== athleteId.toString()) {
-        targetSlot.dataset.athleteId = athleteId
-        const teamName = data.winner_team || "Advanced"
-        
+      if (isChampionRound) {
+        // Champion slot - add crown badge
+        targetSlot.innerHTML = `
+          <div class="athlete-name fw-bold">${athleteName}</div>
+          <small class="team-name text-muted">${teamName}</small>
+          <div class="winner-badge mt-2 text-center">
+            <span class="badge text-dark" style="background-color: #ffd700;">
+              <i class="fa fa-crown me-1"></i>
+              CHAMPION
+            </span>
+          </div>
+        `
+      } else {
+        // Regular slot
         targetSlot.innerHTML = `
           <div class="athlete-name fw-bold">${athleteName}</div>
           <small class="team-name text-muted">${teamName}</small>
         `
-        
-        targetSlot.classList.add('swap-success')
-        setTimeout(() => {
-          targetSlot.classList.remove('swap-success')
-        }, 600)
-        
+      }
+      
+      // Add animation
+      targetSlot.classList.add('swap-success')
+      setTimeout(() => {
+        targetSlot.classList.remove('swap-success')
+      }, 600)
+      
+      // Only add pending badge if NOT champion round
+      if (!isChampionRound) {
+        // Check if bout now has both athletes
         const allSlots = nextBoutElement.querySelectorAll('.athlete-slot')
         const bothFilled = Array.from(allSlots).every(slot => {
           const id = slot.dataset.athleteId
-          return id && id !== 'null' && !slot.textContent.includes('TBD')
+          return id && id !== 'null' && id !== '' && !slot.textContent.includes('TBD')
         })
         
         if (bothFilled) {
+          // Update or create pending badge
           let pendingBadge = nextBoutElement.querySelector('.pending-badge')
           if (!pendingBadge) {
             pendingBadge = document.createElement('div')
@@ -333,78 +369,6 @@ export default class extends Controller {
           `
         }
       }
-    } catch (error) {
-      console.error("Error updating next round bout:", error)
-    }
-  }
-
-  async createNextRoundBout(boutId, roundNumber, athleteId, athleteName, data) {
-    try {
-      const bracketContainer = document.querySelector('.bracket-container')
-      if (!bracketContainer) return
-      
-      // Find or create the round column
-      let roundColumn = document.querySelector(`[data-round="${roundNumber}"]`)
-      
-      if (!roundColumn) {
-        // Create new round column
-        roundColumn = document.createElement('div')
-        roundColumn.className = 'round-column'
-        roundColumn.dataset.round = roundNumber
-        
-        // Calculate total rounds from first round bouts
-        const firstRoundColumn = document.querySelector('[data-round="1"]')
-        if (!firstRoundColumn) return
-        
-        const firstRoundBouts = firstRoundColumn.querySelectorAll('.match-box').length
-        // Total rounds = log2(first_round_bouts) + 1 (approximately)
-        const totalRounds = Math.ceil(Math.log2(firstRoundBouts)) + 1
-        
-        let roundName = `Round ${roundNumber}`
-        
-        if (roundNumber == totalRounds) {
-          roundName = 'Final'
-        } else if (roundNumber == totalRounds - 1) {
-          roundName = 'Semi-Finals'
-        }
-        
-        roundColumn.innerHTML = `<h5 class="mb-3 text-center">${roundName}</h5>`
-        bracketContainer.appendChild(roundColumn)
-      }
-      
-      // Create the match box
-      const matchBox = document.createElement('div')
-      matchBox.className = 'match-box'
-      matchBox.id = `bout-${boutId}`
-      matchBox.dataset.boutId = boutId
-      
-      const teamName = data.winner_team || "Advanced"
-      
-      matchBox.innerHTML = `
-        <div class="slot athlete-slot slot-a" data-drag-target="slot" data-athlete-id="${athleteId}" data-action="click->drag#selectWinner" draggable="true">
-          <div class="athlete-name fw-bold">${athleteName}</div>
-          <small class="team-name text-muted">${teamName}</small>
-        </div>
-        <div class="vs-divider text-center my-2">
-          <small class="text-muted fw-bold">vs</small>
-        </div>
-        <div class="slot athlete-slot slot-b" data-drag-target="slot" data-athlete-id="" data-action="click->drag#selectWinner" draggable="true">
-          <div class="text-muted fst-italic">TBD</div>
-        </div>
-      `
-      
-      roundColumn.appendChild(matchBox)
-      
-      // Add success animation
-      matchBox.classList.add('swap-success')
-      setTimeout(() => {
-        matchBox.classList.remove('swap-success')
-      }, 600)
-      
-      // Re-setup drag and drop for new elements
-      this.setupDragAndDrop()
-    } catch (error) {
-      console.error("Error creating next round bout:", error)
     }
   }
 }

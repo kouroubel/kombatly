@@ -1,99 +1,42 @@
-# class BoutsController < ApplicationController
-#   before_action :authenticate_user!
-#   before_action :set_bout, only: [:show, :swap_athletes, :set_winner, :create_point_event]
-  
-#   # GET /bouts/:id
-#   def show
-#     @point_events = @bout.point_events.includes(:athlete).order(scored_at: :asc)
-#   end
-  
-#   # PATCH /bouts/:id/set_winner
-#   def set_winner
-#     winner = Athlete.find_by(id: params[:winner_id])
-    
-#     unless winner && [@bout.athlete_a_id, @bout.athlete_b_id].include?(winner.id)
-#       return render json: { error: "Invalid winner" }, status: :unprocessable_entity
-#     end
-    
-#     if @bout.update(winner: winner)
-#       advance_winner(@bout)
-#       render json: { success: true, winner_id: winner.id }, status: :ok
-#     else
-#       render json: { errors: @bout.errors.full_messages }, status: :unprocessable_entity
-#     end
-#   end
-  
-#   # POST /bouts/:id/create_point_event
-#   def create_point_event
-#     point_event = @bout.point_events.build(point_event_params)
-    
-#     if point_event.save
-#       render json: { success: true, point_event: point_event }, status: :created
-#     else
-#       render json: { errors: point_event.errors.full_messages }, status: :unprocessable_entity
-#     end
-#   end
-  
-#   # PATCH /bouts/:id/swap_athletes (within same bout)
-#   def swap_athletes
-#     if @bout.update(bout_params)
-#       @bout.update(winner_id: nil) # Clear winner when athletes change
-#       head :ok
-#     else
-#       render json: { errors: @bout.errors.full_messages }, status: :unprocessable_entity
-#     end
-#   end
-  
-#   # POST /bouts/swap (between different bouts)
-#   def swap
-#     result = BoutSwapService.new(swap_params).execute
-    
-#     if result[:success]
-#       head :ok
-#     else
-#       render json: { error: result[:error] }, status: :unprocessable_entity
-#     end
-#   end
-  
-#   private
-  
-#   def set_bout
-#     @bout = Bout.find(params[:id])
-#   end
-  
-#   def bout_params
-#     params.permit(:athlete_a_id, :athlete_b_id)
-#   end
-  
-#   def point_event_params
-#     params.require(:point_event).permit(:athlete_id, :points, :technique, :scored_at)
-#   end
-  
-#   def swap_params
-#     params.permit(
-#       source: [:athlete_id, :bout_id, :slot],
-#       target: [:athlete_id, :bout_id, :slot]
-#     )
-#   end
-  
-#   def advance_winner(bout)
-#     return unless bout.next_bout_id.present?
-    
-#     next_bout = Bout.find_by(id: bout.next_bout_id)
-#     return unless next_bout
-    
-#     if bout.next_slot == "a"
-#       next_bout.update(athlete_a: bout.winner, winner_id: nil)
-#     elsif bout.next_slot == "b"
-#       next_bout.update(athlete_b: bout.winner, winner_id: nil)
-#     end
-#   end
-# end
-
 class BoutsController < ApplicationController
-  before_action :require_admin, only: [:swap]
-  skip_before_action :verify_authenticity_token, only: [:swap]
-
+  before_action :require_admin, only: [:set_winner, :swap]
+  
+  def show
+    @bout = Bout.find(params[:id])
+  end
+  
+  def set_winner
+    @bout = Bout.find(params[:id])
+    winner_id = params[:winner_id]
+    
+    unless current_user&.admin?
+      render json: { error: "Unauthorized" }, status: :unauthorized
+      return
+    end
+    
+    if winner_id.to_i == @bout.athlete_a_id || winner_id.to_i == @bout.athlete_b_id
+      @bout.update!(winner_id: winner_id)
+      
+      winner = Athlete.find(winner_id)
+      
+      # Place winner in next round (bout already exists)
+      result = @bout.division.place_winner_in_next_round(@bout)
+      
+      render json: { 
+        success: true, 
+        winner_id: winner_id,
+        winner_name: winner.fullname,
+        winner_team: winner.team&.name,
+        next_bout_id: result[:next_bout]&.id
+      }, status: :ok
+    else
+      render json: { error: "Invalid winner" }, status: :unprocessable_entity
+    end
+  rescue StandardError => e
+    Rails.logger.error("Set winner error: #{e.message}")
+    render json: { error: e.message }, status: :internal_server_error
+  end
+  
   def swap
     source = params[:source]
     target = params[:target]
@@ -125,35 +68,6 @@ class BoutsController < ApplicationController
   rescue StandardError => e
     Rails.logger.error("Swap error: #{e.message}")
     render json: { error: "An error occurred" }, status: :internal_server_error
-  end
-  
-  def set_winner
-    @bout = Bout.find(params[:id])
-    winner_id = params[:winner_id]
-    
-    unless current_user&.admin?
-      render json: { error: "Unauthorized" }, status: :unauthorized
-      return
-    end
-    
-    if winner_id.to_i == @bout.athlete_a_id || winner_id.to_i == @bout.athlete_b_id
-      @bout.update!(winner_id: winner_id)
-      
-      # Advance winner to next round
-      result = @bout.division.advance_winner_to_next_round(@bout)
-      
-      winner = Athlete.find(winner_id)
-      
-      render json: { 
-        success: true, 
-        winner_id: winner_id,
-        winner_name: winner.fullname,
-        next_bout_id: result[:next_bout]&.id,
-        next_round: result[:next_bout]&.round
-      }, status: :ok
-    else
-      render json: { error: "Invalid winner" }, status: :unprocessable_entity
-    end
   end
 
   private

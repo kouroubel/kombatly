@@ -21,6 +21,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
     t.decimal "weight", precision: 4, scale: 1
     t.string "belt", null: false
     t.string "sex", null: false
+    t.string "card_number"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["team_id"], name: "index_athletes_on_team_id"

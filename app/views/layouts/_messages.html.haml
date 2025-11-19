@@ -1,12 +1,24 @@
 - flash.each do |key, message|
   - bootstrap_class = case key.to_sym
-    - when :notice then "alert alert-success"
-    - when :alert  then "alert alert-danger"
-    - when :info   then "alert alert-info"
-    - when :warning then "alert alert-warning"
-    - else "alert alert-secondary"
+    - when :notice then "alert-success"
+    - when :alert  then "alert-danger"
+    - when :info   then "alert-info"
+    - when :warning then "alert-warning"
+    - else "alert-secondary"
   .mt-3
     .container
-      .alert{ class: bootstrap_class, role: "alert" }
+      .alert.alert-dismissible.fade.show{ class: bootstrap_class, role: "alert" }
         = message
-        %button.btn-close{"data-bs-dismiss" => "alert", "aria-label" => "Close"}
+        %button.btn-close.btn-close-sm{ type: "button", "data-bs-dismiss" => "alert", "aria-label" => "Close" }
+
+:javascript
+  document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+      setTimeout(function() {
+        const bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+      }, 3000);
+    });
+  });
+  

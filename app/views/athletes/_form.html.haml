@@ -29,6 +29,10 @@
                        Athlete::SEXES,
                        { prompt: "Select Sex" },
                        class: "form-select"
+                       
+        .mb-3
+          = f.label :card_number
+          = f.text_field :card_number, class: "form-control"
       
         - if current_user.admin?
           .mb-3

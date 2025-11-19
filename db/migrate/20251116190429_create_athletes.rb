@@ -7,6 +7,7 @@ class CreateAthletes < ActiveRecord::Migration[7.1]
       t.decimal :weight, precision: 4, scale: 1
       t.string :belt, null: false
       t.string :sex, null: false
+      t.string :card_number
 
       t.timestamps
     end

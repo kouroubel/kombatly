@@ -74,6 +74,37 @@
   background-color: #fff9c4;
 }
 
+/* Champion slot styling - winner format with gold */
+.champion-slot {
+  position: relative;
+  padding: 10px;
+  border: 2px solid #d4af37 !important;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
+  min-height: 80px;
+}
+
+.champion-slot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: linear-gradient(180deg, #d4af37 0%, #ffd700 50%, #d4af37 100%);
+  border-radius: 8px 0 0 8px;
+}
+
+.champion-slot .athlete-name {
+  font-size: 1.1rem;
+  color: #7d6608;
+  font-weight: 700;
+}
+
+.champion-slot .team-name {
+  color: #9c7c0a !important;
+  font-weight: 600;
+}
+
 /* Match Boxes */
 .match-box {
   margin-bottom: 16px;
