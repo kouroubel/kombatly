@@ -1,21 +1,26 @@
-%h2.text-2xl.font-bold.mb-6 Change your password
-
-= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "space-y-4" }) do |f|
-  = render "devise/shared/error_messages", resource: resource
-  = f.hidden_field :reset_password_token
-
-  .field
-    = f.label :password, "New password", class: "block text-sm font-medium text-gray-700"
-    - if @minimum_password_length
-      %em
-        (#{@minimum_password_length} characters minimum)
-    = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "mt-1 block w-full border border-gray-300 px-2 py-1"
-
-  .field
-    = f.label :password_confirmation, "Confirm new password", class: "block text-sm font-medium text-gray-700"
-    = f.password_field :password_confirmation, autocomplete: "new-password", class: "mt-1 block w-full border border-gray-300 px-2 py-1"
-
-  .actions
-    = f.submit "Change my password", class: "w-full py-2 px-4 bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none"
-
-= render "devise/shared/links"
+.container.mt-5
+  .row.justify-content-center
+    .col-md-5
+      .card.shadow-sm
+        .card-body.p-4
+          %h2.text-center.mb-4 Change your password
+          
+          = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f|
+            = devise_error_messages!
+            = f.hidden_field :reset_password_token
+            
+            .mb-3
+              = f.label :password, "New password", class: "form-label"
+              = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control"
+              - if @minimum_password_length
+                %small.form-text.text-muted
+                  (#{@minimum_password_length} characters minimum)
+            
+            .mb-3
+              = f.label :password_confirmation, "Confirm new password", class: "form-label"
+              = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
+            
+            .d-grid.mb-3
+              = f.submit "Change my password", class: "btn btn-primary btn-lg"
+            
+            = render "devise/shared/links"
