@@ -1,6 +1,24 @@
 Rails.application.routes.draw do
   
   # ============================================================================
+  # AUTHENTICATED ROUTES (Must come FIRST for logged-in users)
+  # ============================================================================
+  
+  authenticated :user do
+    root to: "home#dashboard", as: :authenticated_root
+    
+    # Admin event management
+    resources :events do
+      resources :divisions do
+        resources :registrations, only: [:new, :create]
+        member do
+          post :generate_bracket
+        end
+      end
+    end
+  end
+  
+  # ============================================================================
   # PUBLIC ROUTES (No authentication required)
   # ============================================================================
   
@@ -11,13 +29,12 @@ Rails.application.routes.draw do
     end
   end
   
-  
-  
-  authenticated :user do
-    root to: "home#dashboard", as: :authenticated_root
-  end
-  
+  # Default root for guests
   root to: "home#index"
+  
+  # ============================================================================
+  # OTHER AUTHENTICATED ROUTES
+  # ============================================================================
   
   devise_for :users
   resources :users, only: [:index, :edit, :update, :destroy]
@@ -28,8 +45,9 @@ Rails.application.routes.draw do
     post 'events/:event_id/register', to: 'registrations#create_for_athlete', as: 'create_registration_for_event'
   end
   
-  resources :events do
-    resources :divisions do
+  # Events outside authenticated block for non-nested routes
+  resources :events, only: [] do
+    resources :divisions, only: [] do
       resources :registrations, only: [:new, :create]
       member do
         post :generate_bracket
@@ -47,91 +65,4 @@ Rails.application.routes.draw do
     end
   end
   
-
 end
-
-# Rails.application.routes.draw do
-  
-#   # Dynamic root depending on login
-#   authenticated :user do
-#     root to: "home#dashboard", as: :authenticated_root
-#   end
-  
-#   # Default root for guests
-#   root to: "home#index"
-  
-#   devise_for :users
-#   resources :users, only: [:index, :edit, :update, :destroy]
-#   resources :teams
-#   resources :athletes do 
-#     get 'events/:event_id/register', to: 'registrations#new_for_athlete', as: 'register_for_event'
-#     post 'events/:event_id/register', to: 'registrations#create_for_athlete', as: 'create_registration_for_event'
-#   end
-  
-#   resources :events do
-#     resources :divisions do
-#       resources :registrations, only: [:new, :create]
-#       member do
-#         post :generate_bracket
-#       end
-#     end
-#   end
-  
-#   resources :bouts, only: [:show] do
-#     member do
-#       patch :set_winner
-#     end
-    
-#     collection do
-#       post :swap
-#     end
-#   end
-# end
-
-
-# Rails.application.routes.draw do
-  
-#   # Dynamic root depending on login
-#   authenticated :user do
-#     root to: "home#dashboard", as: :authenticated_root
-#   end
-
-#   # Default root for guests
-#   root to: "home#index"
-
-#   devise_for :users
-#   resources :users, only: [:index, :edit, :update, :destroy]
-#   resources :teams
-  
-#   resources :athletes do 
-#     get 'events/:event_id/register', to: 'registrations#new_for_athlete', as: 'register_for_event'
-#     post 'events/:event_id/register', to: 'registrations#create_for_athlete', as: 'create_registration_for_event'
-#   end
-  
-#   resources :events do
-#     resources :divisions do
-#       resources :registrations, only: [:new, :create]
-#       member do
-#         post :generate_bracket
-#       end
-#     end
-#   end
-  
-#   resources :divisions, only: [] do
-#     member do
-#       post :generate_next_round
-#     end
-#   end
-  
-#   resources :bouts, only: [:show] do
-#     member do
-#       patch :set_winner
-#       post :create_point_event
-#     end
-    
-#     collection do
-#       post :swap
-#     end
-#   end
-
-# end
