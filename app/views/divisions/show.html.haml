@@ -262,12 +262,12 @@
                   .text-muted.fst-italic TBD
               
               -# 2nd Place - Silver
-              .slot.athlete-slot.champion-slot-silver.mt-3{ data: { athlete_id: champion_bout.second_place_athlete_id } }
-                - if champion_bout.second_place_athlete
+              .slot.athlete-slot.champion-slot-silver.mt-3{ data: { athlete_id: champion_bout.loser_id } }
+                - if champion_bout.loser
                   .text-center
                     %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #c0c0c0;" }
-                  .athlete-name.fw-bold= champion_bout.second_place_athlete.fullname
-                  %small.team-name.text-muted= champion_bout.second_place_athlete.team.name
+                  .athlete-name.fw-bold= champion_bout.loser.fullname
+                  %small.team-name.text-muted= champion_bout.loser.team.name
                   .winner-badge.mt-2.text-center
                     %span.badge.text-dark{ style: "background-color: #c0c0c0;" }
                       🥈 2nd Place

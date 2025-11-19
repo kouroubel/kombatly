@@ -624,14 +624,14 @@ async updateBoutFromData(boutId, boutData) {
       
       // Update 2nd place (silver)
       const silverSlot = championElement.querySelector('.champion-slot-silver')
-      if (silverSlot && boutData.second_place_athlete) {
-        silverSlot.dataset.athleteId = boutData.second_place_athlete.id
+      if (silverSlot && boutData.loser) {  // Changed from second_place_athlete
+        silverSlot.dataset.athleteId = boutData.loser.id
         silverSlot.innerHTML = `
           <div class="text-center">
             <i class="fa fa-medal fa-2x mb-2" style="color: #c0c0c0;"></i>
           </div>
-          <div class="athlete-name fw-bold">${boutData.second_place_athlete.fullname}</div>
-          <small class="team-name text-muted">${boutData.second_place_athlete.team_name}</small>
+          <div class="athlete-name fw-bold">${boutData.loser.fullname}</div>
+          <small class="team-name text-muted">${boutData.loser.team_name}</small>
           <div class="winner-badge mt-2 text-center">
             <span class="badge text-dark" style="background-color: #c0c0c0;">
               🥈 2nd Place

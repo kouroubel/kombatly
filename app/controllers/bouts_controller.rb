@@ -20,10 +20,10 @@ class BoutsController < ApplicationController
             fullname: @bout.athlete_b.fullname,
             team_name: @bout.athlete_b.team&.name
           } : nil,
-          second_place_athlete: @bout.second_place_athlete ? {
-            id: @bout.second_place_athlete.id,
-            fullname: @bout.second_place_athlete.fullname,
-            team_name: @bout.second_place_athlete.team&.name
+          loser: @bout.loser ? {  # Changed from second_place_athlete
+            id: @bout.loser.id,
+            fullname: @bout.loser.fullname,
+            team_name: @bout.loser.team&.name
           } : nil,
           winner_id: @bout.winner_id
         }

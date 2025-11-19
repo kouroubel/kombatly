@@ -66,9 +66,9 @@ class Division < ApplicationRecord
         # Winner goes to athlete_a (1st place)
         champion_bout.update!(athlete_a_id: bout.winner_id)
         
-        # Loser goes to second_place_athlete_id (2nd place)
+        # Loser goes to loser_id (2nd place)
         loser_id = bout.winner_id == bout.athlete_a_id ? bout.athlete_b_id : bout.athlete_a_id
-        champion_bout.update!(second_place_athlete_id: loser_id) if loser_id
+        champion_bout.update!(loser_id: loser_id) if loser_id  # Changed from second_place_athlete_id
       end
       return { success: true, next_bout: champion_bout, bout_type: "champion" }
     end
