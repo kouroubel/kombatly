@@ -1,0 +1,53 @@
+.slot.athlete-slot{ 
+  class: [
+    "slot-#{slot}",
+    athlete ? 'has-athlete' : 'empty-slot',
+    is_winner ? 'winner' : '',
+    bout.winner_id ? 'bout-finished' : ''
+  ],
+  data: { 
+    drag_target: "slot",
+    athlete_id: athlete&.id,
+    bout_id: bout.id,
+    slot: slot
+  },
+  draggable: bout.winner_id.blank? ? "true" : "false"
+}
+  - if athlete
+    .athlete-info
+      .athlete-name
+        = athlete.fullname
+        - if is_winner
+          %span.winner-icon 👑
+      
+      .athlete-details
+        .team-name
+          %small
+            %i.bi.bi-people-fill
+            = athlete.team.name
+        
+        .athlete-stats
+          %span.badge.bg-secondary.me-1
+            = athlete.belt
+          %span.badge.bg-info.me-1
+            = "#{athlete.weight}kg"
+      
+      - if bout.winner_id.blank? && athlete
+        .set-winner-btn
+          %button.btn.btn-xs.btn-success{
+            type: "button",
+            data: { 
+              action: "click->drag#setWinner",
+              athlete_id: athlete.id,
+              bout_id: bout.id
+            }
+          }
+            Set Winner
+  - else
+    .empty-slot-placeholder
+      .placeholder-icon
+        %i.bi.bi-question-circle
+      .placeholder-text
+        TBD
+      .placeholder-subtext
+        %small Awaiting previous round

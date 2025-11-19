@@ -1,6 +1,6 @@
 class DivisionsController < ApplicationController
   before_action :set_event
-  before_action :set_division, only: [:show, :edit, :update, :destroy]
+  before_action :set_division, only: [:show, :edit, :update, :destroy, :generate_bracket, :generate_next_round]
   before_action :require_admin_or_team, only: [:show]
   before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
 
@@ -37,7 +37,7 @@ class DivisionsController < ApplicationController
     @event = @division.event
     @rounds = @division.bouts.order(:round).group_by(&:round)
     @bouts_by_round = @division.bouts.order(:round, :id).group_by(&:round)
-  
+    
     @eligible_athletes = Athlete
       .joins(:team)
       .where(sex: @division.sex, belt: @division.belt)
@@ -54,15 +54,52 @@ class DivisionsController < ApplicationController
   def generate_bracket
     @division = Division.find(params[:id])
   
-    if @division.bouts.exists?
-      flash[:alert] = "Bracket already generated."
-    else
-      @division.generate_first_round_bouts # defined in model
-      flash[:notice] = "Bracket successfully generated."
-    end
+    # Delete existing bracket if it exists
+    @division.bouts.destroy_all
+    
+    @division.generate_first_round_bouts
+    flash[:notice] = "Bracket successfully generated."
   
     redirect_to event_division_path(@division.event, @division)
   end
+  
+  def generate_next_round
+    @division = Division.find(params[:id])
+    
+    unless current_user.admin?
+      render json: { success: false, error: "Not authorized" }, status: :unauthorized
+      return
+    end
+    
+    result = @division.generate_next_round
+    render json: result
+  end
+  
+  # def generate_bracket
+  #   @division = Division.find(params[:id])
+    
+  #   # Delete existing bracket if it exists
+  #   @division.bouts.destroy_all
+
+  #   if @division.bouts.exists?
+  #     flash[:alert] = "Bracket already generated."
+  #   else
+  #     @division.generate_first_round_bouts # defined in model
+  #     flash[:notice] = "Bracket successfully generated."
+  #   end
+
+  #   redirect_to event_division_path(@division.event, @division)
+  # end
+  
+  # def generate_bracket
+  #   result = BracketGeneratorService.new(@division).generate
+    
+  #   if result[:success]
+  #     redirect_to event_division_path(@division.event, @division), notice: "Bracket generated successfully!"
+  #   else
+  #     redirect_to event_division_path(@division.event, @division), alert: result[:error]
+  #   end
+  # end
 
   private
   
@@ -77,7 +114,6 @@ class DivisionsController < ApplicationController
       redirect_to @event, alert: "Not authorized"
     end
   end
-
 
   def set_event
     @event = Event.find(params[:event_id])

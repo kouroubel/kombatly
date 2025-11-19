@@ -28,8 +28,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
 
   create_table "bouts", force: :cascade do |t|
     t.bigint "division_id", null: false
-    t.bigint "athlete_a_id", null: false
-    t.bigint "athlete_b_id", null: false
+    t.bigint "athlete_a_id"
+    t.bigint "athlete_b_id"
     t.bigint "winner_id"
     t.integer "round"
     t.datetime "scheduled_at"
