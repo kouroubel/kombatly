@@ -1,4 +1,18 @@
 Rails.application.routes.draw do
+  
+  # ============================================================================
+  # PUBLIC ROUTES (No authentication required)
+  # ============================================================================
+  
+  # Public event browsing and bracket viewing
+  scope module: :public, as: :public do
+    resources :events, only: [:index, :show], path: 'events' do
+      resources :divisions, only: [:show], path: 'divisions'
+    end
+  end
+  
+  
+  
   authenticated :user do
     root to: "home#dashboard", as: :authenticated_root
   end
@@ -32,6 +46,8 @@ Rails.application.routes.draw do
       post :swap
     end
   end
+  
+
 end
 
 # Rails.application.routes.draw do

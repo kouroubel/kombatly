@@ -1,0 +1,83 @@
+.container.mt-4
+  .text-center.mb-5
+    %h1.display-4
+      %i.fa.fa-trophy.me-3
+      Combat Sports Events
+    %p.lead Browse upcoming and past tournaments
+
+  -# Upcoming Events Section
+  .card.shadow.mb-5
+    .card-header.bg-success.text-white
+      %h3.mb-0
+        %i.fa.fa-calendar-alt.me-2
+        Upcoming Events
+
+    .card-body
+      - if @upcoming_events.any?
+        .row
+          - @upcoming_events.each do |event|
+            .col-md-6.col-lg-4.mb-4
+              .card.h-100.hover-shadow
+                .card-body
+                  %h5.card-title= event.name
+                  %p.card-text
+                    %i.fa.fa-calendar.me-2
+                    = event.start_date.strftime("%B %d, %Y")
+                    - if event.end_date && event.end_date != event.start_date
+                      = " - #{event.end_date.strftime('%B %d, %Y')}"
+                  
+                  - if event.location.present?
+                    %p.card-text
+                      %i.fa.fa-map-marker-alt.me-2
+                      = event.location
+                  
+                  %p.card-text
+                    %span.badge.bg-primary
+                      = pluralize(event.divisions.count, 'division')
+                
+                .card-footer.bg-transparent
+                  = link_to "View Event →", public_event_path(event), class: "btn btn-outline-primary w-100"
+      - else
+        .text-center.text-muted.py-5
+          %i.fa.fa-calendar-times.fa-3x.mb-3
+          %p No upcoming events scheduled.
+
+  -# Past Events Section
+  - if @past_events.any?
+    .card.shadow
+      .card-header.bg-secondary.text-white
+        %h3.mb-0
+          %i.fa.fa-history.me-2
+          Recent Past Events
+
+      .card-body
+        .row
+          - @past_events.each do |event|
+            .col-md-6.col-lg-4.mb-4
+              .card.h-100
+                .card-body
+                  %h5.card-title= event.name
+                  %p.card-text
+                    %i.fa.fa-calendar.me-2
+                    = event.start_date.strftime("%B %d, %Y")
+                  
+                  - if event.location.present?
+                    %p.card-text
+                      %i.fa.fa-map-marker-alt.me-2
+                      = event.location
+                  
+                  %p.card-text
+                    %span.badge.bg-secondary
+                      = pluralize(event.divisions.count, 'division')
+                
+                .card-footer.bg-transparent
+                  = link_to "View Results →", public_event_path(event), class: "btn btn-outline-secondary w-100"
+
+:css
+  .hover-shadow {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+  }

@@ -1,0 +1,94 @@
+.container.mt-4
+  .card.shadow-lg
+    .card-header.bg-primary.text-white
+      .d-flex.justify-content-between.align-items-center
+        %h2.mb-0= @event.name
+        = link_to "← All Events", public_events_path, class: "btn btn-light btn-sm"
+
+    .card-body
+      .row.mb-4
+        .col-md-6
+          %h5 Event Details
+          %dl.row
+            %dt.col-sm-4
+              %i.fa.fa-calendar.me-2
+              Date:
+            %dd.col-sm-8
+              = @event.start_date.strftime("%B %d, %Y")
+              - if @event.end_date && @event.end_date != @event.start_date
+                = " - #{@event.end_date.strftime('%B %d, %Y')}"
+        
+        - if @event.location.present?
+          .col-md-6
+            %h5 Location
+            %p
+              %i.fa.fa-map-marker-alt.me-2
+              = @event.location
+      
+      - if @event.description.present?
+        .mb-4
+          %h5 About
+          %p= @event.description
+
+  -# Divisions Section
+  .mt-5
+    .d-flex.justify-content-between.align-items-center.mb-4
+      %h3
+        %i.fa.fa-list.me-2
+        Divisions
+        %span.badge.bg-primary.ms-2= @divisions.count
+    
+    - if @divisions.any?
+      .row
+        - @divisions.each do |division|
+          .col-md-6.col-lg-4.mb-4
+            .card.h-100.division-card
+              .card-header.bg-light
+                %h5.mb-0= division.name
+              
+              .card-body
+                .mb-2
+                  %strong Age:
+                  = "#{division.min_age}-#{division.max_age} years"
+                
+                .mb-2
+                  %strong Weight:
+                  = "#{division.min_weight}-#{division.max_weight} kg"
+                
+                .mb-2
+                  %strong Belt:
+                  %span.badge.bg-secondary= division.belt
+                
+                .mb-2
+                  %strong Sex:
+                  %span.badge.bg-info= division.sex
+                
+                .mb-2
+                  %strong Registered:
+                  %span.badge.bg-success= pluralize(division.athletes.count, 'athlete')
+                
+                - if division.bouts.any?
+                  .mt-3
+                    %span.badge.bg-warning.text-dark
+                      %i.fa.fa-trophy.me-1
+                      Bracket Available
+              
+              .card-footer.bg-transparent
+                = link_to public_event_division_path(@event, division), class: "btn btn-primary w-100" do
+                  %i.fa.fa-eye.me-2
+                  View Bracket
+
+    - else
+      .alert.alert-info.text-center
+        %i.fa.fa-info-circle.fa-2x.mb-3
+        %p.mb-0 No divisions have been created for this event yet.
+
+:css
+  .division-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .division-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+  }
