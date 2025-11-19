@@ -76,90 +76,217 @@
             %i.fa.fa-hand-pointer
             Drag and drop athletes to reorder
   
-      - total_rounds = @bouts_by_round.keys.max
       - tournament_started = @division.bouts.where.not(winner_id: nil).exists?
+      - normal_bouts = @bouts_by_round.reject { |round, bouts| bouts.any? { |b| ["final", "consolation", "champion"].include?(b.bout_type) } }
+      - final_bout = @division.bouts.find_by(bout_type: "final")
+      - consolation_bout = @division.bouts.find_by(bout_type: "consolation")
+      - champion_bout = @division.bouts.find_by(bout_type: "champion")
   
       .bracket-container{ data: { controller: "drag" } }
-        - @bouts_by_round.each do |round, bouts|
+        - normal_bouts.each do |round, bouts|
           .round-column{ data: { round: round } }
             %h5.mb-3.text-center
-              - if round == 1
-                Round 1
-              - elsif round == total_rounds
-                Champion
-              - elsif round == total_rounds - 1
-                Final
-              - elsif round == total_rounds - 2
+              - total_normal_rounds = normal_bouts.keys.max
+              - rounds_before_final = total_normal_rounds - round
+              
+              - if rounds_before_final == 0
                 Semi-Finals
+              - elsif rounds_before_final == 1
+                Quarter-Finals
+              - elsif round == 1
+                Round 1
               - else
                 Round #{round}
             
             - bouts.each do |bout|
               .match-box{ id: "bout-#{bout.id}", data: { bout_id: bout.id } }
-                - if round == total_rounds
-                  -# Champion round - single slot (winner format)
-                  .slot.athlete-slot.slot-a.champion-slot{ 
-                    data: { 
-                      drag_target: "slot", 
-                      athlete_id: bout.athlete_a_id
-                    }, 
-                    draggable: "false"
-                  }
-                    - if bout.athlete_a
-                      .athlete-name.fw-bold= bout.athlete_a.fullname
-                      %small.team-name.text-muted= bout.athlete_a.team.name
-                      .winner-badge.mt-2.text-center
-                        %span.badge.text-dark{ style: "background-color: #ffd700;" }
-                          %i.fa.fa-crown.me-1
-                          CHAMPION
-                    - else
-                      .text-muted.fst-italic TBD
+                .slot.athlete-slot.slot-a{ 
+                  data: { 
+                    drag_target: "slot", 
+                    athlete_id: bout.athlete_a_id,
+                    action: "click->drag#selectWinner"
+                  }, 
+                  draggable: (current_user.admin? && !tournament_started) ? "true" : "false",
+                  class: (bout.winner_id == bout.athlete_a_id && bout.winner_id.present? && bout.athlete_a_id.present?) ? "winner-slot" : ""
+                }
+                  - if bout.athlete_a
+                    .athlete-name.fw-bold= bout.athlete_a.fullname
+                    %small.team-name.text-muted= bout.athlete_a.team.name
+                  - else
+                    .text-muted.fst-italic TBD
+                
+                .vs-divider.text-center.my-2
+                  %small.text-muted.fw-bold vs
+                .slot.athlete-slot.slot-b{ 
+                  data: { 
+                    drag_target: "slot", 
+                    athlete_id: bout.athlete_b_id,
+                    action: "click->drag#selectWinner"
+                  }, 
+                  draggable: (current_user.admin? && !tournament_started) ? "true" : "false",
+                  class: (bout.winner_id == bout.athlete_b_id && bout.winner_id.present? && bout.athlete_b_id.present?) ? "winner-slot" : ""
+                }
+                  - if bout.athlete_b
+                    .athlete-name.fw-bold= bout.athlete_b.fullname
+                    %small.team-name.text-muted= bout.athlete_b.team.name
+                  - else
+                    .text-muted.fst-italic TBD
+                
+                - if bout.winner
+                  .winner-badge.mt-2.text-center
+                    %span.badge.bg-success
+                      %i.fa.fa-trophy.me-1
+                      Winner: #{bout.winner.fullname}
+                - elsif bout.athlete_a && bout.athlete_b
+                  .pending-badge.mt-2.text-center
+                    %span.badge.bg-secondary
+                      %i.fa.fa-clock.me-1
+                      Click athlete to set winner
+        
+        - if final_bout && consolation_bout
+          .round-column{ data: { round: final_bout.round } }
+            %h5.mb-3.text-center Finals
+            
+            -# Final Bout
+            .match-box.mb-4{ id: "bout-#{final_bout.id}", data: { bout_id: final_bout.id } }
+              .text-center.mb-2
+                %strong.text-primary Championship Final
+              .slot.athlete-slot.slot-a{ 
+                data: { 
+                  drag_target: "slot", 
+                  athlete_id: final_bout.athlete_a_id,
+                  action: "click->drag#selectWinner"
+                }, 
+                draggable: "false",
+                class: (final_bout.winner_id == final_bout.athlete_a_id && final_bout.winner_id.present? && final_bout.athlete_a_id.present?) ? "winner-slot" : ""
+              }
+                - if final_bout.athlete_a
+                  .athlete-name.fw-bold= final_bout.athlete_a.fullname
+                  %small.team-name.text-muted= final_bout.athlete_a.team.name
                 - else
-                  -# Regular bout
-                  .slot.athlete-slot.slot-a{ 
-                    data: { 
-                      drag_target: "slot", 
-                      athlete_id: bout.athlete_a_id,
-                      action: "click->drag#selectWinner"
-                    }, 
-                    draggable: (current_user.admin? && !tournament_started) ? "true" : "false",
-                    class: bout.winner_id == bout.athlete_a_id ? "winner-slot" : ""
-                  }
-                    - if bout.athlete_a
-                      .athlete-name.fw-bold= bout.athlete_a.fullname
-                      %small.team-name.text-muted= bout.athlete_a.team.name
-                    - else
-                      .text-muted.fst-italic TBD
-                  
-                  .vs-divider.text-center.my-2
-                    %small.text-muted.fw-bold vs
-                  
-                  .slot.athlete-slot.slot-b{ 
-                    data: { 
-                      drag_target: "slot", 
-                      athlete_id: bout.athlete_b_id,
-                      action: "click->drag#selectWinner"
-                    }, 
-                    draggable: (current_user.admin? && !tournament_started) ? "true" : "false",
-                    class: bout.winner_id == bout.athlete_b_id ? "winner-slot" : ""
-                  }
-                    - if bout.athlete_b
-                      .athlete-name.fw-bold= bout.athlete_b.fullname
-                      %small.team-name.text-muted= bout.athlete_b.team.name
-                    - else
-                      .text-muted.fst-italic TBD
-                  
-                  - if bout.winner
-                    .winner-badge.mt-2.text-center
-                      %span.badge.bg-success
-                        %i.fa.fa-trophy.me-1
-                        Winner: #{bout.winner.fullname}
-                  - elsif bout.athlete_a && bout.athlete_b
-                    .pending-badge.mt-2.text-center
-                      %span.badge.bg-secondary
-                        %i.fa.fa-clock.me-1
-                        Click athlete to set winner
-                      
+                  .text-muted.fst-italic TBD
+              
+              .vs-divider.text-center.my-2
+                %small.text-muted.fw-bold vs
+              
+              .slot.athlete-slot.slot-b{ 
+                data: { 
+                  drag_target: "slot", 
+                  athlete_id: final_bout.athlete_b_id,
+                  action: "click->drag#selectWinner"
+                }, 
+                draggable: "false",
+                class: (final_bout.winner_id == final_bout.athlete_b_id && final_bout.winner_id.present? && final_bout.athlete_b_id.present?) ? "winner-slot" : ""
+              }
+                - if final_bout.athlete_b
+                  .athlete-name.fw-bold= final_bout.athlete_b.fullname
+                  %small.team-name.text-muted= final_bout.athlete_b.team.name
+                - else
+                  .text-muted.fst-italic TBD
+              
+              - if final_bout.winner
+                .winner-badge.mt-2.text-center
+                  %span.badge.bg-success
+                    %i.fa.fa-trophy.me-1
+                    Winner: #{final_bout.winner.fullname}
+              - elsif final_bout.athlete_a && final_bout.athlete_b
+                .pending-badge.mt-2.text-center
+                  %span.badge.bg-secondary
+                    %i.fa.fa-clock.me-1
+                    Click athlete to set winner
+            
+            -# Consolation Bout
+            .match-box{ id: "bout-#{consolation_bout.id}", data: { bout_id: consolation_bout.id } }
+              .text-center.mb-2
+                %strong.text-warning Consolation Final
+              .slot.athlete-slot.slot-a{ 
+                data: { 
+                  drag_target: "slot", 
+                  athlete_id: consolation_bout.athlete_a_id,
+                  action: "click->drag#selectWinner"
+                }, 
+                draggable: "false",
+                class: (consolation_bout.winner_id == consolation_bout.athlete_a_id && consolation_bout.winner_id.present?) ? "winner-slot" : ""
+              }
+                - if consolation_bout.athlete_a
+                  .athlete-name.fw-bold= consolation_bout.athlete_a.fullname
+                  %small.team-name.text-muted= consolation_bout.athlete_a.team.name
+                - else
+                  .text-muted.fst-italic TBD
+              
+              .vs-divider.text-center.my-2
+                %small.text-muted.fw-bold vs
+              
+              .slot.athlete-slot.slot-b{ 
+                data: { 
+                  drag_target: "slot", 
+                  athlete_id: consolation_bout.athlete_b_id,
+                  action: "click->drag#selectWinner"
+                }, 
+                draggable: "false",
+                class: (consolation_bout.winner_id == consolation_bout.athlete_b_id && consolation_bout.winner_id.present?) ? "winner-slot" : ""
+              }
+                - if consolation_bout.athlete_b
+                  .athlete-name.fw-bold= consolation_bout.athlete_b.fullname
+                  %small.team-name.text-muted= consolation_bout.athlete_b.team.name
+                - else
+                  .text-muted.fst-italic TBD
+              
+              - if consolation_bout.winner
+                .winner-badge.mt-2.text-center
+                  %span.badge.bg-success
+                    %i.fa.fa-trophy.me-1
+                    Winner: #{consolation_bout.winner.fullname}
+              - elsif consolation_bout.athlete_a && consolation_bout.athlete_b
+                .pending-badge.mt-2.text-center
+                  %span.badge.bg-secondary
+                    %i.fa.fa-clock.me-1
+                    Click athlete to set winner
+        
+        - if champion_bout
+          .round-column{ data: { round: champion_bout.round } }
+            %h5.mb-3.text-center Champions
+            
+            .match-box.champion-display{ id: "bout-#{champion_bout.id}", data: { bout_id: champion_bout.id } }
+              -# 1st Place - Gold
+              .slot.athlete-slot.champion-slot-gold{ data: { athlete_id: champion_bout.athlete_a_id } }
+                - if champion_bout.athlete_a
+                  .text-center
+                    %i.fa.fa-trophy.fa-2x.mb-2{ style: "color: #ffd700;" }
+                  .athlete-name.fw-bold= champion_bout.athlete_a.fullname
+                  %small.team-name.text-muted= champion_bout.athlete_a.team.name
+                  .winner-badge.mt-2.text-center
+                    %span.badge.text-dark{ style: "background-color: #ffd700;" }
+                      🥇 1st Place
+                - else
+                  .text-muted.fst-italic TBD
+              
+              -# 2nd Place - Silver
+              .slot.athlete-slot.champion-slot-silver.mt-3{ data: { athlete_id: champion_bout.second_place_athlete_id } }
+                - if champion_bout.second_place_athlete
+                  .text-center
+                    %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #c0c0c0;" }
+                  .athlete-name.fw-bold= champion_bout.second_place_athlete.fullname
+                  %small.team-name.text-muted= champion_bout.second_place_athlete.team.name
+                  .winner-badge.mt-2.text-center
+                    %span.badge.text-dark{ style: "background-color: #c0c0c0;" }
+                      🥈 2nd Place
+                - else
+                  .text-muted.fst-italic TBD
+              
+              -# 3rd Place - Bronze
+              .slot.athlete-slot.champion-slot-bronze.mt-3{ data: { athlete_id: champion_bout.athlete_b_id } }
+                - if champion_bout.athlete_b
+                  .text-center
+                    %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #cd7f32;" }
+                  .athlete-name.fw-bold= champion_bout.athlete_b.fullname
+                  %small.team-name.text-muted= champion_bout.athlete_b.team.name
+                  .winner-badge.mt-2.text-center
+                    %span.badge.text-white{ style: "background-color: #cd7f32;" }
+                      🥉 3rd Place
+                - else
+                  .text-muted.fst-italic TBD
+  
   - else
     .mt-5
       .alert.alert-info.d-flex.align-items-center

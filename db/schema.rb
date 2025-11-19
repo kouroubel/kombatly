@@ -32,13 +32,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
     t.bigint "athlete_a_id"
     t.bigint "athlete_b_id"
     t.bigint "winner_id"
+    t.bigint "second_place_athlete_id"
     t.integer "round"
+    t.string "bout_type", default: "normal"
     t.datetime "scheduled_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["athlete_a_id"], name: "index_bouts_on_athlete_a_id"
     t.index ["athlete_b_id"], name: "index_bouts_on_athlete_b_id"
     t.index ["division_id"], name: "index_bouts_on_division_id"
+    t.index ["second_place_athlete_id"], name: "index_bouts_on_second_place_athlete_id"
     t.index ["winner_id"], name: "index_bouts_on_winner_id"
   end
 
@@ -124,6 +127,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
   add_foreign_key "athletes", "teams"
   add_foreign_key "bouts", "athletes", column: "athlete_a_id"
   add_foreign_key "bouts", "athletes", column: "athlete_b_id"
+  add_foreign_key "bouts", "athletes", column: "second_place_athlete_id"
   add_foreign_key "bouts", "athletes", column: "winner_id"
   add_foreign_key "bouts", "divisions"
   add_foreign_key "divisions", "events"

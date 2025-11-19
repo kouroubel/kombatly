@@ -23,7 +23,7 @@ export default class extends Controller {
   }
 
   dragStart(event) {
-    // Check if tournament has started by looking for winner badges (not just winner-slot class from view)
+    // Check if tournament has started
     const anyWinnerBadge = document.querySelector('.winner-badge')
     
     if (anyWinnerBadge) {
@@ -36,7 +36,7 @@ export default class extends Controller {
     event.dataTransfer.effectAllowed = "move"
     event.currentTarget.classList.add("dragging")
   }
-  
+
   dragEnd(event) {
     event.currentTarget.classList.remove("dragging")
     this.slotTargets.forEach(slot => {
@@ -157,6 +157,7 @@ export default class extends Controller {
     })
   }
   
+
   async selectWinner(event) {
     const athleteSlot = event.currentTarget
     const athleteId = athleteSlot.dataset.athleteId
@@ -232,12 +233,18 @@ export default class extends Controller {
       
       console.log("Winner set successfully", data)
       
+      // Handle semi-final - fetch and update both bouts from server
+      if (data.is_semi_final) {
+        await this.reloadFinalAndConsolationBouts(data.next_bout_id, data.consolation_bout_id)
+        return
+      }
+      
       // If changing winner, remove old winner from next round first
       if (isChangingWinner && oldWinnerId && data.next_bout_id) {
         await this.removeAthleteFromNextRound(data.next_bout_id, oldWinnerId)
       }
       
-      // Update next round with new winner (bout already exists in DOM)
+      // Update next round with new winner (for non-semi-finals)
       if (data.next_bout_id) {
         await this.updateNextRoundBout(data.next_bout_id, athleteId, athleteName, data)
       }
@@ -247,7 +254,162 @@ export default class extends Controller {
       alert("Failed to set winner: " + error.message)
     }
   }
+  
+  async reloadFinalAndConsolationBouts(finalBoutId, consolationBoutId) {
+    try {
+      // Fetch final bout data
+      const finalResponse = await fetch(`/bouts/${finalBoutId}.json`, {
+        headers: { "X-CSRF-Token": this.csrfToken }
+      })
+      
+      if (!finalResponse.ok) throw new Error("Failed to fetch final bout")
+      
+      const finalData = await finalResponse.json()
+      
+      // Fetch consolation bout data
+      const consolationResponse = await fetch(`/bouts/${consolationBoutId}.json`, {
+        headers: { "X-CSRF-Token": this.csrfToken }
+      })
+      
+      if (!consolationResponse.ok) throw new Error("Failed to fetch consolation bout")
+      
+      const consolationData = await consolationResponse.json()
+      
+      // Update Final bout in DOM
+      await this.updateBoutFromData(finalBoutId, finalData)
+      
+      // Update Consolation bout in DOM
+      await this.updateBoutFromData(consolationBoutId, consolationData)
+      
+      console.log("Final and Consolation bouts updated successfully")
+      
+    } catch (error) {
+      console.error("Error reloading bouts:", error)
+    }
+  }
+  
+  async updateBoutFromData(boutId, boutData) {
+    const boutElement = document.querySelector(`[data-bout-id="${boutId}"]`)
+    if (!boutElement) return
+    
+    // Update slot A
+    const slotA = boutElement.querySelector('.slot-a')
+    if (slotA && boutData.athlete_a) {
+      slotA.dataset.athleteId = boutData.athlete_a.id
+      slotA.innerHTML = `
+        <div class="athlete-name fw-bold">${boutData.athlete_a.fullname}</div>
+        <small class="team-name text-muted">${boutData.athlete_a.team_name}</small>
+      `
+      slotA.classList.add('swap-success')
+      setTimeout(() => slotA.classList.remove('swap-success'), 600)
+    }
+    
+    // Update slot B
+    const slotB = boutElement.querySelector('.slot-b')
+    if (slotB && boutData.athlete_b) {
+      slotB.dataset.athleteId = boutData.athlete_b.id
+      slotB.innerHTML = `
+        <div class="athlete-name fw-bold">${boutData.athlete_b.fullname}</div>
+        <small class="team-name text-muted">${boutData.athlete_b.team_name}</small>
+      `
+      slotB.classList.add('swap-success')
+      setTimeout(() => slotB.classList.remove('swap-success'), 600)
+    }
+    
+    // Check if both slots filled and add pending badge
+    if (boutData.athlete_a && boutData.athlete_b) {
+      let pendingBadge = boutElement.querySelector('.pending-badge')
+      if (!pendingBadge) {
+        pendingBadge = document.createElement('div')
+        pendingBadge.className = 'pending-badge mt-2 text-center'
+        boutElement.appendChild(pendingBadge)
+      }
+      pendingBadge.innerHTML = `
+        <span class="badge bg-secondary">
+          <i class="fa fa-clock me-1"></i>
+          Click athlete to set winner
+        </span>
+      `
+    }
+  }
 
+async reloadFinalAndConsolationBouts(finalBoutId, consolationBoutId) {
+  try {
+    // Fetch final bout data
+    const finalResponse = await fetch(`/bouts/${finalBoutId}.json`, {
+      headers: { "X-CSRF-Token": this.csrfToken }
+    })
+    
+    if (!finalResponse.ok) throw new Error("Failed to fetch final bout")
+    
+    const finalData = await finalResponse.json()
+    
+    // Fetch consolation bout data
+    const consolationResponse = await fetch(`/bouts/${consolationBoutId}.json`, {
+      headers: { "X-CSRF-Token": this.csrfToken }
+    })
+    
+    if (!consolationResponse.ok) throw new Error("Failed to fetch consolation bout")
+    
+    const consolationData = await consolationResponse.json()
+    
+    // Update Final bout in DOM
+    await this.updateBoutFromData(finalBoutId, finalData)
+    
+    // Update Consolation bout in DOM
+    await this.updateBoutFromData(consolationBoutId, consolationData)
+    
+    console.log("Final and Consolation bouts updated successfully")
+    
+  } catch (error) {
+    console.error("Error reloading bouts:", error)
+  }
+}
+
+async updateBoutFromData(boutId, boutData) {
+  const boutElement = document.querySelector(`[data-bout-id="${boutId}"]`)
+  if (!boutElement) return
+  
+  // Update slot A
+  const slotA = boutElement.querySelector('.slot-a')
+  if (slotA && boutData.athlete_a) {
+    slotA.dataset.athleteId = boutData.athlete_a.id
+    slotA.innerHTML = `
+      <div class="athlete-name fw-bold">${boutData.athlete_a.fullname}</div>
+      <small class="team-name text-muted">${boutData.athlete_a.team_name}</small>
+    `
+    slotA.classList.add('swap-success')
+    setTimeout(() => slotA.classList.remove('swap-success'), 600)
+  }
+  
+  // Update slot B
+  const slotB = boutElement.querySelector('.slot-b')
+  if (slotB && boutData.athlete_b) {
+    slotB.dataset.athleteId = boutData.athlete_b.id
+    slotB.innerHTML = `
+      <div class="athlete-name fw-bold">${boutData.athlete_b.fullname}</div>
+      <small class="team-name text-muted">${boutData.athlete_b.team_name}</small>
+    `
+    slotB.classList.add('swap-success')
+    setTimeout(() => slotB.classList.remove('swap-success'), 600)
+  }
+  
+  // Check if both slots filled and add pending badge
+  if (boutData.athlete_a && boutData.athlete_b) {
+    let pendingBadge = boutElement.querySelector('.pending-badge')
+    if (!pendingBadge) {
+      pendingBadge = document.createElement('div')
+      pendingBadge.className = 'pending-badge mt-2 text-center'
+      boutElement.appendChild(pendingBadge)
+    }
+    pendingBadge.innerHTML = `
+      <span class="badge bg-secondary">
+        <i class="fa fa-clock me-1"></i>
+        Click athlete to set winner
+      </span>
+    `
+  }
+}
   async removeAthleteFromNextRound(nextBoutId, oldWinnerId) {
     const nextBoutElement = document.querySelector(`[data-bout-id="${nextBoutId}"]`)
     if (!nextBoutElement) return
@@ -283,8 +445,64 @@ export default class extends Controller {
     }
   }
   
+  async updateConsolationBout(consolationBoutId, loserId, loserName, data) {
+    const consolationBoutElement = document.querySelector(`[data-bout-id="${consolationBoutId}"]`)
+    
+    if (!consolationBoutElement) {
+      console.error("Consolation bout not found in DOM:", consolationBoutId)
+      return
+    }
+    
+    // Find the empty slot
+    const slots = consolationBoutElement.querySelectorAll('.athlete-slot')
+    let targetSlot = null
+    
+    slots.forEach(slot => {
+      const id = slot.dataset.athleteId
+      if ((!id || id === 'null' || id === '' || slot.textContent.includes('TBD')) && !targetSlot) {
+        targetSlot = slot
+      }
+    })
+    
+    if (targetSlot) {
+      targetSlot.dataset.athleteId = loserId
+      const teamName = data.loser_team || "Advanced"
+      
+      targetSlot.innerHTML = `
+        <div class="athlete-name fw-bold">${loserName}</div>
+        <small class="team-name text-muted">${teamName}</small>
+      `
+      
+      targetSlot.classList.add('swap-success')
+      setTimeout(() => {
+        targetSlot.classList.remove('swap-success')
+      }, 600)
+      
+      // Check if consolation bout now has both athletes
+      const allSlots = consolationBoutElement.querySelectorAll('.athlete-slot')
+      const bothFilled = Array.from(allSlots).every(slot => {
+        const id = slot.dataset.athleteId
+        return id && id !== 'null' && id !== '' && !slot.textContent.includes('TBD')
+      })
+      
+      if (bothFilled) {
+        let pendingBadge = consolationBoutElement.querySelector('.pending-badge')
+        if (!pendingBadge) {
+          pendingBadge = document.createElement('div')
+          pendingBadge.className = 'pending-badge mt-2 text-center'
+          consolationBoutElement.appendChild(pendingBadge)
+        }
+        pendingBadge.innerHTML = `
+          <span class="badge bg-secondary">
+            <i class="fa fa-clock me-1"></i>
+            Click athlete to set winner
+          </span>
+        `
+      }
+    }
+  }
+  
   async updateNextRoundBout(nextBoutId, athleteId, athleteName, data) {
-    // Find the next round bout element (it already exists!)
     const nextBoutElement = document.querySelector(`[data-bout-id="${nextBoutId}"]`)
     
     if (!nextBoutElement) {
@@ -292,83 +510,158 @@ export default class extends Controller {
       return
     }
     
-    // Check if this is the champion round (has champion-slot class)
-    const isChampionRound = nextBoutElement.querySelector('.champion-slot')
+    // Check if this is the champion bout
+    const isChampionBout = nextBoutElement.classList.contains('champion-display')
     
-    // Find the empty slot (TBD) or slot with matching athlete_id
+    if (isChampionBout) {
+      // Update champion display without reload
+      await this.updateChampionSlots(nextBoutId, data)
+      return
+    }
+    
+    // Check if this bout is the FINAL or CONSOLATION
+    const boutTitle = nextBoutElement.querySelector('.text-primary, .text-warning')
+    const isFinalBout = boutTitle && boutTitle.textContent.includes('Championship Final')
+    const isConsolationBout = boutTitle && boutTitle.textContent.includes('3rd Place Match')
+    
+    // For semi-finals updating the FINAL, only update if this is the winner
+    // The loser should NOT update the final
+    if (isFinalBout) {
+      console.log("Updating FINAL bout with winner")
+    } else if (isConsolationBout) {
+      console.log("Skipping consolation - this is handled separately")
+      return // Don't update consolation here - it's handled by updateConsolationBout
+    }
+    
+    // Find the empty slot
     const slots = nextBoutElement.querySelectorAll('.athlete-slot')
     let targetSlot = null
     
     slots.forEach(slot => {
       const id = slot.dataset.athleteId
       if (id === athleteId.toString()) {
-        // Already placed
         targetSlot = slot
       } else if ((!id || id === 'null' || id === '' || slot.textContent.includes('TBD')) && !targetSlot) {
-        // Empty slot - use this
         targetSlot = slot
       }
     })
     
     if (targetSlot && targetSlot.dataset.athleteId !== athleteId.toString()) {
-      // Update the slot with winner info
       targetSlot.dataset.athleteId = athleteId
       const teamName = data.winner_team || "Advanced"
       
-      // Remove any winner-slot class to show correct color ribbon
       targetSlot.classList.remove('winner-slot')
       
-      if (isChampionRound) {
-        // Champion slot - add crown badge
-        targetSlot.innerHTML = `
-          <div class="athlete-name fw-bold">${athleteName}</div>
-          <small class="team-name text-muted">${teamName}</small>
-          <div class="winner-badge mt-2 text-center">
-            <span class="badge text-dark" style="background-color: #ffd700;">
-              <i class="fa fa-crown me-1"></i>
-              CHAMPION
-            </span>
-          </div>
-        `
-      } else {
-        // Regular slot
-        targetSlot.innerHTML = `
-          <div class="athlete-name fw-bold">${athleteName}</div>
-          <small class="team-name text-muted">${teamName}</small>
-        `
-      }
+      targetSlot.innerHTML = `
+        <div class="athlete-name fw-bold">${athleteName}</div>
+        <small class="team-name text-muted">${teamName}</small>
+      `
       
-      // Add animation
       targetSlot.classList.add('swap-success')
       setTimeout(() => {
         targetSlot.classList.remove('swap-success')
       }, 600)
       
-      // Only add pending badge if NOT champion round
-      if (!isChampionRound) {
-        // Check if bout now has both athletes
-        const allSlots = nextBoutElement.querySelectorAll('.athlete-slot')
-        const bothFilled = Array.from(allSlots).every(slot => {
-          const id = slot.dataset.athleteId
-          return id && id !== 'null' && id !== '' && !slot.textContent.includes('TBD')
-        })
-        
-        if (bothFilled) {
-          // Update or create pending badge
-          let pendingBadge = nextBoutElement.querySelector('.pending-badge')
-          if (!pendingBadge) {
-            pendingBadge = document.createElement('div')
-            pendingBadge.className = 'pending-badge mt-2 text-center'
-            nextBoutElement.appendChild(pendingBadge)
-          }
-          pendingBadge.innerHTML = `
-            <span class="badge bg-warning text-dark">
-              <i class="fa fa-clock me-1"></i>
-              Click athlete to set winner
-            </span>
-          `
+      const allSlots = nextBoutElement.querySelectorAll('.athlete-slot')
+      const bothFilled = Array.from(allSlots).every(slot => {
+        const id = slot.dataset.athleteId
+        return id && id !== 'null' && id !== '' && !slot.textContent.includes('TBD')
+      })
+      
+      if (bothFilled) {
+        let pendingBadge = nextBoutElement.querySelector('.pending-badge')
+        if (!pendingBadge) {
+          pendingBadge = document.createElement('div')
+          pendingBadge.className = 'pending-badge mt-2 text-center'
+          nextBoutElement.appendChild(pendingBadge)
         }
+        pendingBadge.innerHTML = `
+          <span class="badge bg-secondary">
+            <i class="fa fa-clock me-1"></i>
+            Click athlete to set winner
+          </span>
+        `
       }
+    }
+  }
+  
+  async updateChampionSlots(championBoutId, data) {
+    // Fetch the latest champion bout data
+    try {
+      const response = await fetch(`/bouts/${championBoutId}.json`, {
+        headers: {
+          "X-CSRF-Token": this.csrfToken
+        }
+      })
+      
+      if (!response.ok) {
+        console.error("Failed to fetch champion bout data")
+        return
+      }
+      
+      const boutData = await response.json()
+      const championElement = document.querySelector(`[data-bout-id="${championBoutId}"]`)
+      
+      if (!championElement) return
+      
+      // Update 1st place (gold)
+      const goldSlot = championElement.querySelector('.champion-slot-gold')
+      if (goldSlot && boutData.athlete_a) {
+        goldSlot.dataset.athleteId = boutData.athlete_a.id
+        goldSlot.innerHTML = `
+          <div class="text-center">
+            <i class="fa fa-trophy fa-2x mb-2" style="color: #ffd700;"></i>
+          </div>
+          <div class="athlete-name fw-bold">${boutData.athlete_a.fullname}</div>
+          <small class="team-name text-muted">${boutData.athlete_a.team_name}</small>
+          <div class="winner-badge mt-2 text-center">
+            <span class="badge text-dark" style="background-color: #ffd700;">
+              🥇 1st Place
+            </span>
+          </div>
+        `
+      }
+      
+      // Update 2nd place (silver)
+      const silverSlot = championElement.querySelector('.champion-slot-silver')
+      if (silverSlot && boutData.second_place_athlete) {
+        silverSlot.dataset.athleteId = boutData.second_place_athlete.id
+        silverSlot.innerHTML = `
+          <div class="text-center">
+            <i class="fa fa-medal fa-2x mb-2" style="color: #c0c0c0;"></i>
+          </div>
+          <div class="athlete-name fw-bold">${boutData.second_place_athlete.fullname}</div>
+          <small class="team-name text-muted">${boutData.second_place_athlete.team_name}</small>
+          <div class="winner-badge mt-2 text-center">
+            <span class="badge text-dark" style="background-color: #c0c0c0;">
+              🥈 2nd Place
+            </span>
+          </div>
+        `
+      }
+      
+      // Update 3rd place (bronze)
+      const bronzeSlot = championElement.querySelector('.champion-slot-bronze')
+      if (bronzeSlot && boutData.athlete_b) {
+        bronzeSlot.dataset.athleteId = boutData.athlete_b.id
+        bronzeSlot.innerHTML = `
+          <div class="text-center">
+            <i class="fa fa-medal fa-2x mb-2" style="color: #cd7f32;"></i>
+          </div>
+          <div class="athlete-name fw-bold">${boutData.athlete_b.fullname}</div>
+          <small class="team-name text-muted">${boutData.athlete_b.team_name}</small>
+          <div class="winner-badge mt-2 text-center">
+            <span class="badge text-white" style="background-color: #cd7f32;">
+              🥉 3rd Place
+            </span>
+          </div>
+        `
+      }
+      
+      console.log("Champion slots updated successfully")
+      
+    } catch (error) {
+      console.error("Error updating champion slots:", error)
     }
   }
 }

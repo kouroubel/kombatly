@@ -3,6 +3,32 @@ class BoutsController < ApplicationController
   
   def show
     @bout = Bout.find(params[:id])
+    
+    respond_to do |format|
+      format.html
+      format.json do
+        render json: {
+          id: @bout.id,
+          bout_type: @bout.bout_type,
+          athlete_a: @bout.athlete_a ? {
+            id: @bout.athlete_a.id,
+            fullname: @bout.athlete_a.fullname,
+            team_name: @bout.athlete_a.team&.name
+          } : nil,
+          athlete_b: @bout.athlete_b ? {
+            id: @bout.athlete_b.id,
+            fullname: @bout.athlete_b.fullname,
+            team_name: @bout.athlete_b.team&.name
+          } : nil,
+          second_place_athlete: @bout.second_place_athlete ? {
+            id: @bout.second_place_athlete.id,
+            fullname: @bout.second_place_athlete.fullname,
+            team_name: @bout.second_place_athlete.team&.name
+          } : nil,
+          winner_id: @bout.winner_id
+        }
+      end
+    end
   end
   
   def set_winner
@@ -19,16 +45,39 @@ class BoutsController < ApplicationController
       
       winner = Athlete.find(winner_id)
       
-      # Place winner in next round (bout already exists)
+      # Place winner in next round
       result = @bout.division.place_winner_in_next_round(@bout)
       
-      render json: { 
+      # Check if this is a semi-final
+      final_bout = @bout.division.bouts.find_by(bout_type: "final")
+      is_semi_final = (@bout.round == final_bout.round - 1) if final_bout
+      
+      response_data = { 
         success: true, 
         winner_id: winner_id,
         winner_name: winner.fullname,
         winner_team: winner.team&.name,
+        bout_type: result[:bout_type],
         next_bout_id: result[:next_bout]&.id
-      }, status: :ok
+      }
+      
+      # For semi-finals, also handle loser
+      if is_semi_final
+        loser_result = @bout.division.place_loser_in_consolation(@bout)
+        
+        if loser_result[:success]
+          loser_id = winner_id == @bout.athlete_a_id ? @bout.athlete_b_id : @bout.athlete_a_id
+          loser = Athlete.find(loser_id)
+          
+          response_data[:consolation_bout_id] = loser_result[:consolation_bout]&.id
+          response_data[:loser_id] = loser_id
+          response_data[:loser_name] = loser.fullname
+          response_data[:loser_team] = loser.team&.name
+          response_data[:is_semi_final] = true
+        end
+      end
+      
+      render json: response_data, status: :ok
     else
       render json: { error: "Invalid winner" }, status: :unprocessable_entity
     end
