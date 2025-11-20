@@ -2,13 +2,13 @@
 class TeamsController < ApplicationController
 
   before_action :set_team, only: [:show, :edit, :update, :destroy]
-  before_action :require_admin_or_team, only: [:new, :create, :edit, :update, :destroy]
+  before_action :require_can_manage_team, only: [:new, :create, :edit, :update, :destroy]
   
   def index
     if admin?
       @teams = Team.all
     else
-      @teams = [current_user.team] # team admins see only their team
+      @teams = [current_user.administered_team].compact # team admins see only their team. compact removes nil if the user doesn't have a team (safety check)
     end
   end
 
@@ -43,16 +43,13 @@ class TeamsController < ApplicationController
   
   def destroy
     @team.destroy
-    debugger
     redirect_to teams_path, notice: "Team deleted"
   end
 
   private
   
-  def require_admin_or_team
-    unless current_user.admin? || current_user.team == @team
-      redirect_to teams_path, alert: "Not authorized"
-    end
+  def require_can_manage_team
+    redirect_to teams_path, alert: "Not authorized" unless current_user&.can_manage_team?
   end
 
   def set_team

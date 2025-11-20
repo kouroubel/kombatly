@@ -51,5 +51,5 @@
                   %h5.card-title= event.name
                   %p.card-text
                     %i.fa.fa-calendar.me-2
-                    = event.start_date.strftime("%B %d, %Y")
+                    = event.start_date.strftime("%d.%m.%Y")
                   = link_to "View Bracket", public_event_path(event), class: "btn btn-sm btn-primary"

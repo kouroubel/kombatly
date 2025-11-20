@@ -159,11 +159,19 @@ class Division < ApplicationRecord
     { success: true, consolation_bout: consolation_bout }
   end
   
-  def eligible_athletes
-    Athlete.where(
-      sex: sex,
-      belt: belt
-    ).where("EXTRACT(YEAR FROM AGE(birthdate)) BETWEEN ? AND ?", min_age, max_age)
-     .where(weight: min_weight..max_weight)
+  # Role-based eligible athletes
+  def eligible_athletes(current_user = nil)
+    athletes = Athlete.joins(:team)
+                      # .where(sex: sex, belt: belt)
+                      .where(sex: sex)  #belt color not a requirement for now!!
+                      .where("EXTRACT(YEAR FROM AGE(birthdate)) BETWEEN ? AND ?", min_age, max_age)
+                      .where(weight: min_weight..max_weight)
+    
+    # Filter by team for team_admins (not superadmin or event organizer)
+    if current_user && current_user.team_admin? && !current_user.can_manage_event?(event)
+      athletes = athletes.where(teams: { id: current_user.administered_team.id })
+    end
+    
+    athletes
   end
 end

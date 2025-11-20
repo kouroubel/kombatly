@@ -1,19 +1,22 @@
 class AthletesController < ApplicationController
 
   before_action :set_athlete, only: [:show, :edit, :update, :destroy]
-  before_action :require_admin_or_team, only: [:new, :create, :edit, :update, :destroy]
+  before_action :require_can_manage_team, only: [:new, :create, :edit, :update, :destroy]
   before_action :restrict_team_admin_access, only: [:show, :edit, :update, :destroy]
 
+
   def index
-    if current_user.admin?
-      @athletes = Athlete.includes(:team).order(:fullname)
-    elsif current_user.team?
-      @athletes = Athlete.includes(:team)
-                         .where(team_id: current_user.team_id)
-                         .order(:fullname)
+    if current_user.superadmin?
+      @athletes = Athlete.includes(:team).order('teams.name, athletes.fullname')
+    elsif current_user.can_manage_team?
+      # Only show their team's athletes
+      if current_user.administered_team.present?
+        @athletes = current_user.administered_team.athletes.order(:fullname)
+      else
+        @athletes = Athlete.none
+      end
     else
-      # Optional: block access
-      redirect_to root_path, alert: "Not authorized"
+      @athletes = Athlete.none
     end
   end
 
@@ -60,8 +63,8 @@ class AthletesController < ApplicationController
     @athlete = Athlete.find(params[:id])
   end
   
-  def require_admin_or_team
-    redirect_to root_path, alert: "Not authorized" unless current_user.admin? || current_user.team?
+  def require_can_manage_team
+    redirect_to root_path, alert: "Not authorized" unless current_user&.can_manage_team?
   end
   
   def restrict_team_admin_access

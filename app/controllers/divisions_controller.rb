@@ -1,8 +1,8 @@
 class DivisionsController < ApplicationController
   before_action :set_event
   before_action :set_division, only: [:show, :edit, :update, :destroy, :generate_bracket]
-  before_action :require_admin_or_team, only: [:show]
-  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
+  # before_action :require_can_manage_team, only: [:show]
+  before_action :require_can_manage_event, only: [:new, :create, :edit, :update, :destroy, :generate_bracket]
   
   def new
     @division = @event.divisions.new
@@ -27,16 +27,11 @@ class DivisionsController < ApplicationController
       render :edit, status: :unprocessable_entity
     end
   end
-  
+    
   def show
     @event = @division.event
     @bouts_by_round = @division.bouts.order(:round, :id).group_by(&:round)
-  
-    @eligible_athletes = Athlete
-      .joins(:team)
-      .where(sex: @division.sex, belt: @division.belt)
-      .where("weight >= ? AND weight <= ?", @division.min_weight, @division.max_weight)
-      .select { |athlete| athlete_age(athlete) >= @division.min_age && athlete_age(athlete) <= @division.max_age }
+    @eligible_athletes = @division.eligible_athletes(current_user)
   end
   
   def destroy
@@ -53,14 +48,12 @@ class DivisionsController < ApplicationController
   
   private
   
-  def require_admin_or_team
-    unless current_user.admin? || current_user.team?
-      redirect_to @event, alert: "Not authorized"
-    end
+  def require_can_manage_team
+    redirect_to @event, alert: "Not authorized" unless current_user&.can_manage_team?
   end
   
-  def require_admin
-    unless current_user.admin?
+  def require_can_manage_event
+    unless current_user&.can_manage_event?(@event)
       redirect_to @event, alert: "Not authorized"
     end
   end

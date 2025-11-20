@@ -2,7 +2,6 @@ class CreateTeams < ActiveRecord::Migration[7.1]
   def change
     create_table :teams do |t|
       t.string :name, null: false
-      t.references :team_admin, null: false, foreign_key: { to_table: :users }
       
       t.timestamps
     end

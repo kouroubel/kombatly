@@ -1,19 +1,19 @@
 class UsersController < ApplicationController
-
-  before_action :require_admin
+  before_action :require_superadmin
   before_action :set_user, only: [:edit, :update, :destroy]
 
   def index
-    @users = User.order(:id)
+    @pending_users = User.where(role: :pending).order(created_at: :desc)
+    @users = User.where.not(role: :pending).order(:role, :email)
   end
   
   def edit
   end
 
   def update
-    # Prevent changing role of the first admin
-    if @user.role == "admin" && params[:user][:role] != "admin"
-      redirect_to users_path, alert: "Cannot change the role of an admin."
+    # Prevent changing role of superadmin
+    if @user.superadmin? && params[:user][:role] != "superadmin"
+      redirect_to users_path, alert: "Cannot change the role of a superadmin."
       return
     end
 
@@ -24,16 +24,14 @@ class UsersController < ApplicationController
     end
   end
 
-
   def destroy
-    if @user.role != "admin"
+    if @user.superadmin?
+      redirect_to users_path, alert: "Cannot delete a superadmin."
+    else
       @user.destroy
       redirect_to users_path, notice: "User deleted."
-    else
-      redirect_to users_path, alert: "Cannot delete an admin."
     end
   end
-
 
   private
   
@@ -41,8 +39,8 @@ class UsersController < ApplicationController
     @user = User.find(params[:id])
   end
 
-  def require_admin
-    redirect_to root_path, alert: "Access denied" unless current_user.admin?
+  def require_superadmin
+    redirect_to root_path, alert: "Access denied" unless current_user&.superadmin?
   end
   
   def user_params

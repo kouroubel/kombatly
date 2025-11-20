@@ -7,6 +7,8 @@
     = form_for @user do |f|
       .mb-3
         = f.label :role
-        = f.select :role, options_for_select([["Team", "team"], ["Athlete", "athlete"], ["Pending", "pending"]], @user.role), {}, class: "form-select"
+        // superadmin should not be an option
+        = f.select :role, options_for_select(User.roles.keys.reject { |r| r == "superadmin" }.map { |r| [r.humanize.titleize, r] }, @user.role), {}, class: "form-select"
+
       .actions
         = f.submit "Update Role", class: "btn btn-primary"

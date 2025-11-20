@@ -6,7 +6,7 @@
     .card-body
       %p
         %strong Date:
-        = @event.start_date.strftime("%d %b %Y") if @event.start_date
+        = @event.start_date.strftime("%d.%m.%Y") if @event.start_date
       %p
         %strong Location:
         = @event.location
@@ -51,7 +51,7 @@
           %td= division.cost
   
           / Eligible Athletes
-          %td= division.eligible_athletes.count
+          %td= division.eligible_athletes(current_user).count
   
           / Registered Athletes (adjust method if needed)
           %td= division.registrations.count

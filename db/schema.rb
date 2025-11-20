@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_20_082017) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -62,24 +62,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
 
   create_table "events", force: :cascade do |t|
     t.string "name", null: false
-    t.date "start_date"
+    t.date "start_date", null: false
     t.date "end_date"
     t.text "location"
     t.text "description"
+    t.bigint "organizer_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "point_events", force: :cascade do |t|
-    t.bigint "bout_id", null: false
-    t.bigint "athlete_id", null: false
-    t.string "technique"
-    t.integer "points"
-    t.datetime "scored_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["athlete_id"], name: "index_point_events_on_athlete_id"
-    t.index ["bout_id"], name: "index_point_events_on_bout_id"
+    t.index ["organizer_id"], name: "index_events_on_organizer_id"
   end
 
   create_table "registrations", force: :cascade do |t|
@@ -87,16 +77,24 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
     t.bigint "division_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["athlete_id", "division_id"], name: "index_registrations_on_athlete_id_and_division_id", unique: true
     t.index ["athlete_id"], name: "index_registrations_on_athlete_id"
     t.index ["division_id"], name: "index_registrations_on_division_id"
   end
 
-  create_table "teams", force: :cascade do |t|
-    t.string "name", null: false
-    t.bigint "team_admin_id", null: false
+  create_table "team_admin_roles", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "team_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["team_admin_id"], name: "index_teams_on_team_admin_id"
+    t.index ["team_id"], name: "index_team_admin_roles_on_team_id", unique: true
+    t.index ["user_id"], name: "index_team_admin_roles_on_user_id", unique: true
+  end
+
+  create_table "teams", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|
@@ -118,10 +116,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
     t.string "unconfirmed_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "team_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
-    t.index ["team_id"], name: "index_users_on_team_id"
   end
 
   add_foreign_key "athletes", "teams"
@@ -131,10 +127,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_17_103300) do
   add_foreign_key "bouts", "athletes", column: "winner_id"
   add_foreign_key "bouts", "divisions"
   add_foreign_key "divisions", "events"
-  add_foreign_key "point_events", "athletes"
-  add_foreign_key "point_events", "bouts"
+  add_foreign_key "events", "users", column: "organizer_id"
   add_foreign_key "registrations", "athletes"
   add_foreign_key "registrations", "divisions"
-  add_foreign_key "teams", "users", column: "team_admin_id"
-  add_foreign_key "users", "teams"
+  add_foreign_key "team_admin_roles", "teams"
+  add_foreign_key "team_admin_roles", "users"
 end

@@ -9,7 +9,7 @@
         = @athlete.team.name if @athlete.team
       %p
         %strong Birthdate:
-        = @athlete.birthdate.strftime("%d %b %Y") if @athlete.birthdate
+        = @athlete.birthdate.strftime("%d.%m.%Y") if @athlete.birthdate
       %p
         %strong Weight:
         = "#{@athlete.weight} kg" if @athlete.weight

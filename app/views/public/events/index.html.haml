@@ -22,9 +22,9 @@
                   %h5.card-title= event.name
                   %p.card-text
                     %i.fa.fa-calendar.me-2
-                    = event.start_date.strftime("%B %d, %Y")
+                    = event.start_date.strftime("%d.%m.%Y")
                     - if event.end_date && event.end_date != event.start_date
-                      = " - #{event.end_date.strftime('%B %d, %Y')}"
+                      = " - #{event.end_date.strftime('%d.%m.%Y')}"
                   
                   - if event.location.present?
                     %p.card-text
@@ -59,7 +59,7 @@
                   %h5.card-title= event.name
                   %p.card-text
                     %i.fa.fa-calendar.me-2
-                    = event.start_date.strftime("%B %d, %Y")
+                    = event.start_date.strftime("%d.%m.%Y")
                   
                   - if event.location.present?
                     %p.card-text

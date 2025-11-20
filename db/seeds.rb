@@ -2,90 +2,203 @@
 require "faker"
 
 puts "Clearing existing data..."
-Registration.destroy_all rescue nil
-PointEvent.destroy_all rescue nil
-Bout.destroy_all rescue nil
+Registration.destroy_all
+Bout.destroy_all
 Division.destroy_all
 Event.destroy_all
 Athlete.destroy_all
+TeamAdminRole.destroy_all
 Team.destroy_all
 User.destroy_all
 
 puts "Seeding users..."
-# Admin
-admin = User.create!(
+
+# ------------------------------------------------------------------------------------
+# SUPERADMIN
+# ------------------------------------------------------------------------------------
+superadmin = User.create!(
   fullname: "Albert Roussos",
   email: "albert.roussos@gmail.com",
   password: "password",
   password_confirmation: "password",
-  role: :admin,
+  role: :superadmin,
   confirmed_at: Time.current
 )
+puts "Created Superadmin: #{superadmin.email}"
 
-# Team admins
-team_admins = 3.times.map do |i|
+# ------------------------------------------------------------------------------------
+# ORGANIZER
+# ------------------------------------------------------------------------------------
+organizer = User.create!(
+  fullname: Faker::Name.name,
+  email: "organizer@example.com",
+  password: "password",
+  password_confirmation: "password",
+  role: :organizer,
+  confirmed_at: Time.current
+)
+puts "Created Organizer: #{organizer.email}"
+
+# ------------------------------------------------------------------------------------
+# TEAM ADMINS (1 per team)
+# ------------------------------------------------------------------------------------
+puts "Creating 5 team admins..."
+team_admins = 5.times.map do |i|
   User.create!(
-    fullname: "TeamAdmin #{i + 1}",
-    email: "teamadmin#{i + 1}@example.com",
+    fullname: Faker::Name.name,
+    email: "teamadmin#{i+1}@example.com",
     password: "password",
     password_confirmation: "password",
-    role: :team,
+    role: :team_admin,
     confirmed_at: Time.current
   )
 end
+puts "Created #{team_admins.count} team admins."
 
-puts "Seeding teams..."
-team_names = ["Red Dragons", "Blue Tigers", "Golden Eagles"]
-teams = team_names.each_with_index.map do |name, i|
-  Team.create!(
-    name: name,
-    team_admin: team_admins[i]
-  )
-end
-
-# Link team_admin back to their team
-teams.each_with_index do |team, i|
-  u = team_admins[i]
-  u.update!(team: team)
-end
-
-puts "Seeding Event and Divisions..."
-event = Event.create!(
-  name: "Annual Karate Championship",
-  location: "Athens Arena",
-  start_date: Date.today + 30.days
-)
-
-divisions_data = [
-  { name: "White Belt Boys U12", min_age: 8, max_age: 12, min_weight: 0, max_weight: 40, belt: "White", sex: "Male", cost: 25 },
-  { name: "White Belt Girls U12", min_age: 8, max_age: 12, min_weight: 0, max_weight: 40, belt: "White", sex: "Female", cost: 25 },
-  { name: "Yellow/Green Belt Boys U16", min_age: 13, max_age: 16, min_weight: 0, max_weight: 60, belt: "Yellow", sex: "Male", cost: 30 },
-  { name: "Yellow/Green Belt Girls U16", min_age: 13, max_age: 16, min_weight: 0, max_weight: 60, belt: "Yellow", sex: "Female", cost: 30 },
-  { name: "Blue/Red/Black Adults Male", min_age: 17, max_age: 40, min_weight: 0, max_weight: 100, belt: "Blue", sex: "Male", cost: 30 },
-  { name: "Blue/Red/Black Adults Female", min_age: 17, max_age: 40, min_weight: 0, max_weight: 100, belt: "Blue", sex: "Female", cost: 30 }
+# ------------------------------------------------------------------------------------
+# TEAMS (each with one unique team admin)
+# ------------------------------------------------------------------------------------
+team_names = [
+  "Athens Tigers",
+  "Sparta Warriors",
+  "Thessaloniki Dragons",
+  "Crete Panthers",
+  "Patras Eagles"
 ]
 
-divisions = divisions_data.map do |div|
-  Division.create!(div.merge(event: event))
+teams = []
+
+puts "Creating 5 teams..."
+team_names.each_with_index do |name, i|
+  team = Team.create!(name: name)
+  TeamAdminRole.create!(user: team_admins[i], team: team)
+  teams << team
+  puts "Created team #{team.name} with admin #{team_admins[i].email}"
 end
 
-puts "Seeding athletes..."
-belts = Athlete::BELTS
-sexes = Athlete::SEXES
+# ------------------------------------------------------------------------------------
+# EVENT
+# ------------------------------------------------------------------------------------
+event = Event.create!(
+  name: "Kids National Cup 2025",
+  location: "Athens Olympic Arena",
+  start_date: Date.today + 30.days,
+  end_date: Date.today + 30.days,
+  description: "Youth championship for ages 6–7.",
+  organizer: organizer
+)
 
-100.times do
-  # Pick a division so athlete is eligible
-  div = divisions.sample
-  team = teams.sample
+puts "Created event: #{event.name}"
 
-  Athlete.create!(
-    fullname: "#{Faker::Name.first_name} #{Faker::Name.last_name}",
-    birthdate: Faker::Date.birthday(min_age: div[:min_age], max_age: div[:max_age]),
-    weight: rand(div[:min_weight]..div[:max_weight]).round(1), # 1 decimal
-    belt: div[:belt] == "Any" ? belts.sample : div[:belt],
-    sex: div[:sex] == "Any" ? sexes.sample : div[:sex],
-    team: team
-  )
+# ------------------------------------------------------------------------------------
+# DIVISIONS (8 total = 2 sexes × 2 birth-year groups × 4 weight classes)
+# ------------------------------------------------------------------------------------
+
+puts "Creating divisions..."
+
+divisions_data = []
+sexes = ["Male", "Female"]
+years = [2019, 2020]
+
+# Correct weight boundaries:
+# -25kg: 0–25.0
+# -30kg: 25.1–30.0
+# -35kg: 30.1–35.0
+# +35kg: 35.1–200.0
+weights = [
+  { name: "-25kg", min: 0, max: 25.0 },
+  { name: "-30kg", min: 25.1, max: 30.0 },
+  { name: "-35kg", min: 30.1, max: 35.0 },
+  { name: "+35kg", min: 35.1, max: 200.0 }
+]
+
+years.each do |year|
+  sexes.each do |sex|
+    weights.each do |w|
+      divisions_data << {
+        name: "#{sex} #{year} #{w[:name]}",
+        min_age: 6,
+        max_age: 7,
+        min_weight: w[:min],
+        max_weight: w[:max],
+        belt: "White",
+        cost: 25,
+        sex: sex,
+        event: event
+      }
+    end
+  end
 end
 
-puts "Seeding complete!"
+divisions = divisions_data.map { |data| Division.create!(data) }
+
+puts "Created #{divisions.count} divisions."
+
+# ------------------------------------------------------------------------------------
+# ATHLETES (15–20 per team)
+# Weight range guaranteed: 25–38 kg
+# ------------------------------------------------------------------------------------
+
+puts "Creating athletes..."
+
+athletes = []
+
+teams.each do |team|
+  num = rand(15..20)
+
+  num.times do
+    sex = ["Male", "Female"].sample
+
+    birth_year = [2019, 2020].sample
+    birthdate = Date.new(birth_year, rand(1..12), rand(1..28))
+
+    # Strictly enforce 25.0–38.0
+    # And assign correctly into weight-group buckets
+    weight =
+      case rand(1..4)
+      when 1 then 25.0                       # exact boundary to fit -25kg
+      when 2 then rand(25.1..30.0)           # -30kg
+      when 3 then rand(30.1..35.0)           # -35kg
+      else rand(35.1..38.0)                  # +35kg (capped at 38)
+      end
+
+    athlete = Athlete.create!(
+      fullname: Faker::Name.name,
+      birthdate: birthdate,
+      weight: weight.round(1),
+      belt: "White",
+      sex: sex,
+      team: team
+    )
+
+    athletes << athlete
+  end
+
+  puts "Created #{num} athletes for #{team.name}"
+end
+
+puts "Total athletes created: #{athletes.count}"
+
+# ------------------------------------------------------------------------------------
+# NO REGISTRATIONS
+# ------------------------------------------------------------------------------------
+puts "Skipping registrations (0 created)."
+
+puts "\n" + "="*80
+puts "SEEDING COMPLETE!"
+puts "="*80
+
+puts "\nLogin Credentials:"
+puts "Superadmin: #{superadmin.email} / password"
+puts "Organizer:  #{organizer.email} / password"
+team_admins.each { |ta| puts "Team Admin: #{ta.email} / password" }
+
+puts "="*80
+puts "Stats:"
+puts "Users: #{User.count}"
+puts "Teams: #{Team.count}"
+puts "Events: #{Event.count}"
+puts "Divisions: #{Division.count}"
+puts "Athletes: #{Athlete.count}"
+puts "Registrations: #{Registration.count}"
+puts "="*80

@@ -1,13 +1,13 @@
 Rails.application.routes.draw do
   
   # ============================================================================
-  # AUTHENTICATED ROUTES (Must come FIRST for logged-in users)
+  # AUTHENTICATED ROUTES
   # ============================================================================
   
   authenticated :user do
     root to: "home#dashboard", as: :authenticated_root
     
-    # Admin event management
+    # Admin event management (organizers and superadmin)
     resources :events do
       resources :divisions do
         resources :registrations, only: [:new, :create]
@@ -19,21 +19,19 @@ Rails.application.routes.draw do
   end
   
   # ============================================================================
-  # PUBLIC ROUTES (No authentication required)
+  # PUBLIC ROUTES (No authentication required) - MUST BE FIRST
   # ============================================================================
   
-  # Public event browsing and bracket viewing
   scope module: :public, as: :public do
     resources :events, only: [:index, :show], path: 'events' do
       resources :divisions, only: [:show], path: 'divisions'
     end
   end
   
-  # Default root for guests
   root to: "home#index"
   
   # ============================================================================
-  # OTHER AUTHENTICATED ROUTES
+  # OTHER ROUTES
   # ============================================================================
   
   devise_for :users
@@ -45,16 +43,6 @@ Rails.application.routes.draw do
     post 'events/:event_id/register', to: 'registrations#create_for_athlete', as: 'create_registration_for_event'
   end
   
-  # Events outside authenticated block for non-nested routes
-  resources :events, only: [] do
-    resources :divisions, only: [] do
-      resources :registrations, only: [:new, :create]
-      member do
-        post :generate_bracket
-      end
-    end
-  end
-  
   resources :bouts, only: [:show] do
     member do
       patch :set_winner
@@ -64,5 +52,4 @@ Rails.application.routes.draw do
       post :swap
     end
   end
-  
 end

@@ -14,9 +14,9 @@
               %i.fa.fa-calendar.me-2
               Date:
             %dd.col-sm-8
-              = @event.start_date.strftime("%B %d, %Y")
+              = @event.start_date.strftime("%d.%m.%Y")
               - if @event.end_date && @event.end_date != @event.start_date
-                = " - #{@event.end_date.strftime('%B %d, %Y')}"
+                = " - #{@event.end_date.strftime('%d.%m.%Y')}"
         
         - if @event.location.present?
           .col-md-6
