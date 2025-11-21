@@ -80,5 +80,4 @@ class AthletesController < ApplicationController
   end
 
 
-
 end

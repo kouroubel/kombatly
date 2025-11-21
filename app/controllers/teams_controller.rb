@@ -5,7 +5,7 @@ class TeamsController < ApplicationController
   before_action :require_can_manage_team, only: [:new, :create, :edit, :update, :destroy]
   
   def index
-    if admin?
+    if current_user.admin?
       @teams = Team.all
     else
       @teams = [current_user.administered_team].compact # team admins see only their team. compact removes nil if the user doesn't have a team (safety check)

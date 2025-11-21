@@ -6,10 +6,25 @@ class Division < ApplicationRecord
   
   def generate_complete_bracket
     athletes = registrations.map(&:athlete).shuffle
-    return if athletes.size < 2
+    # return if athletes.size < 2
     
     # Calculate rounds: we need rounds to get down to 2 athletes (semi-finals)
     total_athletes = athletes.size
+    
+    # Special case: 1 athlete - automatic champion
+    if total_athletes == 1
+      bouts.create!(athlete_a: athletes[0], athlete_b: nil, round: 1, bout_type: "final")
+      bouts.create!(athlete_a: nil, athlete_b: nil, round: 2, bout_type: "champion")
+      return
+    end
+    
+    # Special case: exactly 2 athletes go straight to final
+    if total_athletes == 2
+      bouts.create!(athlete_a: athletes[0], athlete_b: athletes[1], round: 1, bout_type: "final")
+      bouts.create!(athlete_a: nil, athlete_b: nil, round: 2, bout_type: "champion")
+      return
+    end
+    
     # normal_rounds = Math.log2(total_athletes).ceil      # this is for brackets without consolation final. simple elimination
     normal_rounds = (Math.log2(total_athletes) - 1).ceil  # this is for brackets with consolation final. -1 because semis lead to final
     normal_rounds = 1 if normal_rounds < 1
