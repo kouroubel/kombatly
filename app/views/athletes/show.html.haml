@@ -1,64 +1,63 @@
-.container.mt-5
-  .card
-    .card-header
-      %h1.mb-0= @athlete.fullname
+.card
+  .card-header
+    %h1.mb-0= @athlete.fullname
 
-    .card-body
-      %p
-        %strong Team:
-        = @athlete.team.name if @athlete.team
-      %p
-        %strong Birthdate:
-        = @athlete.birthdate.strftime("%d.%m.%Y") if @athlete.birthdate
-      %p
-        %strong Weight:
-        = "#{@athlete.weight} kg" if @athlete.weight
-      %p
-        %strong Belt:
-        = @athlete.belt
-      %p
-        %strong Sex:
-        = @athlete.sex
-        
-      %p
-        %strong Card Number:
-        = @athlete.card_number
-
-
-      .mt-4
-        = link_to "Edit", edit_athlete_path(@athlete), class: "btn btn-primary"
-        = link_to "Back", athletes_path, class: "btn btn-secondary"
-        = link_to "Delete", athlete_path(@athlete),
-                    data: { "turbo-method": :delete, turbo_confirm: "Are you sure?" },
-                    class: "btn btn-danger"
+  .card-body
+    %p
+      %strong Team:
+      = @athlete.team.name if @athlete.team
+    %p
+      %strong Birthdate:
+      = @athlete.birthdate.strftime("%d.%m.%Y") if @athlete.birthdate
+    %p
+      %strong Weight:
+      = "#{@athlete.weight} kg" if @athlete.weight
+    %p
+      %strong Belt:
+      = @athlete.belt
+    %p
+      %strong Sex:
+      = @athlete.sex
+      
+    %p
+      %strong Card Number:
+      = @athlete.card_number
 
 
-  - Event.all.each do |event|
-    %h3.mt-4= event.name
-    - if current_user.admin? || @athlete.team_id == current_user.team_id
-      = link_to "Manage Registrations", athlete_register_for_event_path(@athlete, event), class: "btn btn-success mb-3"
+    .mt-4
+      = link_to "Edit", edit_athlete_path(@athlete), class: "btn btn-primary"
+      = link_to "Back", athletes_path, class: "btn btn-secondary"
+      = link_to "Delete", athlete_path(@athlete),
+                  data: { "turbo-method": :delete, turbo_confirm: "Are you sure?" },
+                  class: "btn btn-danger"
 
-    %table.table.table-striped.table-bordered
-      %thead
+
+- Event.all.each do |event|
+  %h3.mt-4= event.name
+  - if current_user.can_manage_team?(@athlete.team)
+    = link_to "Manage Registrations", athlete_register_for_event_path(@athlete, event), class: "btn btn-success mb-3"
+
+  %table.table.table-striped.table-bordered
+    %thead
+      %tr
+        %th Division
+        %th Belt
+        %th Sex
+        %th Age Range
+        %th Weight Range
+        %th Registered
+    %tbody
+      - event.divisions.each do |division|
+        - next unless division.eligible_athletes.include?(@athlete)
         %tr
-          %th Division
-          %th Belt
-          %th Sex
-          %th Age Range
-          %th Weight Range
-          %th Registered
-      %tbody
-        - event.divisions.each do |division|
-          - next unless division.eligible_athletes.include?(@athlete)
-          %tr
-            %td= division.name
-            %td= division.belt
-            %td= division.sex
-            %td= "#{division.min_age}-#{division.max_age}"
-            %td= "#{division.min_weight}-#{division.max_weight} kg"
-            %td.text-center
-              - if @athlete.registrations.exists?(division: division)
-                %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
-              - else
-                %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg
-    
+          %td= division.name
+          %td= division.belt
+          %td= division.sex
+          %td= "#{division.min_age}-#{division.max_age}"
+          %td= "#{division.min_weight}-#{division.max_weight} kg"
+          %td.text-center
+            - if @athlete.registrations.exists?(division: division)
+              %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
+            - else
+              %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg
+  

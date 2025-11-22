@@ -1,48 +1,47 @@
 = render "shared/errors", obj: @athlete
 
-.container.mt-5.max-w-lg
-  .card.shadow
-    .card-body
-      = form_with(model: @athlete, local: true) do |f|
+.card.shadow
+  .card-body
+    = form_with(model: @athlete, local: true) do |f|
+      .mb-3
+        = f.label :fullname
+        = f.text_field :fullname, class: "form-control"
+    
+      .mb-3
+        = f.label :birthdate
+        = f.date_field :birthdate, class: "form-control"
+    
+      .mb-3
+        = f.label :weight
+        = f.number_field :weight, step: 0.1, class: "form-control"
+    
+      .mb-3
+        = f.label :belt
+        = f.select :belt,
+                     Athlete::BELTS,
+                     { prompt: "Select Belt" },
+                     class: "form-select"
+                     
+      .mb-3
+        = f.label :sex
+        = f.select :sex,
+                     Athlete::SEXES,
+                     { prompt: "Select Sex" },
+                     class: "form-select"
+                     
+      .mb-3
+        = f.label :card_number
+        = f.text_field :card_number, class: "form-control"
+    
+      - if current_user.admin?
         .mb-3
-          = f.label :fullname
-          = f.text_field :fullname, class: "form-control"
-      
-        .mb-3
-          = f.label :birthdate
-          = f.date_field :birthdate, class: "form-control"
-      
-        .mb-3
-          = f.label :weight
-          = f.number_field :weight, step: 0.1, class: "form-control"
-      
-        .mb-3
-          = f.label :belt
-          = f.select :belt,
-                       Athlete::BELTS,
-                       { prompt: "Select Belt" },
-                       class: "form-select"
-                       
-        .mb-3
-          = f.label :sex
-          = f.select :sex,
-                       Athlete::SEXES,
-                       { prompt: "Select Sex" },
-                       class: "form-select"
-                       
-        .mb-3
-          = f.label :card_number
-          = f.text_field :card_number, class: "form-control"
-      
-        - if current_user.admin?
-          .mb-3
-            = f.label :team_id, "Team"
-            = f.collection_select :team_id,
-                                  Team.all,
-                                  :id,
-                                  :name,
-                                  { prompt: "Select a team" },
-                                  { class: "form-select" }
-      
-        .actions
-          = f.submit "Save Athlete", class: "btn btn-primary"
+          = f.label :team_id, "Team"
+          = f.collection_select :team_id,
+                                Team.all,
+                                :id,
+                                :name,
+                                { prompt: "Select a team" },
+                                { class: "form-select" }
+    
+      .actions
+        = f.submit "Save Athlete", class: "btn btn-primary"

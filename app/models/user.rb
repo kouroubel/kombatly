@@ -18,7 +18,7 @@ class User < ApplicationRecord
   
   # Set role before creation
   before_create :assign_initial_role
-  before_destroy :destroy_administered_team
+  before_destroy :destroy_administered_team, prepend: true
   
   # Backward compatibility helpers (so existing code still works)
   def admin?
@@ -26,12 +26,15 @@ class User < ApplicationRecord
   end
   
   def team?
-    team_admin? || organizer?  # Organizers can also act as team admins
+    team_admin? || organizer?
   end
   
-  # New role helper methods
-  def can_manage_team?
-    organizer? || team_admin?
+  # New helper methods
+  def can_manage_team?(team)
+    return true if superadmin?
+    return false unless team
+    
+    administered_team&.id == team.id
   end
   
   def can_create_events?
@@ -59,6 +62,10 @@ class User < ApplicationRecord
   end
   
   def destroy_administered_team
-    administered_team&.destroy_with_admin!
+    # Get the team BEFORE the join table is destroyed
+    team = administered_team
+    return unless team
+    
+    team.destroy_with_admin!
   end
 end

@@ -1,61 +1,60 @@
-.container.mt-5
-  .card
-    .card-header
-      %h1.mb-0= @event.name
+.card
+  .card-header
+    %h1.mb-0= @event.name
 
-    .card-body
-      %p
-        %strong Date:
-        = @event.start_date.strftime("%d.%m.%Y") if @event.start_date
-      %p
-        %strong Location:
-        = @event.location
-      %p
-        %strong Description:
-        = @event.description
+  .card-body
+    %p
+      %strong Date:
+      = @event.start_date.strftime("%d.%m.%Y") if @event.start_date
+    %p
+      %strong Location:
+      = @event.location
+    %p
+      %strong Description:
+      = @event.description
 
-      .mt-4
-        = link_to "Edit", edit_event_path(@event), class: "btn btn-primary me-2"
-        = link_to "Back", events_path, class: "btn btn-secondary"
-        = link_to "Delete", event_path(@event), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger"
+    .mt-4
+      = link_to "Edit", edit_event_path(@event), class: "btn btn-primary me-2"
+      = link_to "Back", events_path, class: "btn btn-secondary"
+      = link_to "Delete", event_path(@event), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger"
 
 
-  %h3.mt-3 Divisions
-  = link_to "New Division", new_event_division_path(@event), class: "btn btn-success mb-3"
+%h3.mt-3 Divisions
+= link_to "New Division", new_event_division_path(@event), class: "btn btn-success mb-3"
 
-  %table.table.table-striped.table-bordered
-    %thead
+%table.table.table-striped.table-bordered
+  %thead
+    %tr
+      %th Name
+      %th Age Range
+      %th Weight Range
+      %th Belt
+      %th Sex
+      %th Cost(€)
+      %th Eligible
+      %th Registered
+      %th Actions
+  %tbody
+    - @event.divisions.each do |division|
       %tr
-        %th Name
-        %th Age Range
-        %th Weight Range
-        %th Belt
-        %th Sex
-        %th Cost(€)
-        %th Eligible
-        %th Registered
-        %th Actions
-    %tbody
-      - @event.divisions.each do |division|
-        %tr
-          %td= link_to division.name, event_division_path(@event, division)
-  
-          / Age Range
-          %td= "#{division.min_age}–#{division.max_age}"
-  
-          / Weight Range
-          %td= "#{division.min_weight}–#{division.max_weight} kg"
-  
-          %td= division.belt
-          %td= division.sex
-          %td= division.cost
-  
-          / Eligible Athletes
-          %td= division.eligible_athletes(current_user).count
-  
-          / Registered Athletes (adjust method if needed)
-          %td= division.registrations.count
-  
-          %td
-            = link_to "Edit", edit_event_division_path(@event, division), class: "btn btn-sm btn-primary me-1"
-            = link_to "Delete", event_division_path(@event, division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"
+        %td= link_to division.name, event_division_path(@event, division)
+
+        / Age Range
+        %td= "#{division.min_age}–#{division.max_age}"
+
+        / Weight Range
+        %td= "#{division.min_weight}–#{division.max_weight} kg"
+
+        %td= division.belt
+        %td= division.sex
+        %td= division.cost
+
+        / Eligible Athletes
+        %td= division.eligible_athletes(current_user).count
+
+        / Registered Athletes (adjust method if needed)
+        %td= division.registrations.count
+
+        %td
+          = link_to "Edit", edit_event_division_path(@event, division), class: "btn btn-sm btn-primary me-1"
+          = link_to "Delete", event_division_path(@event, division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"

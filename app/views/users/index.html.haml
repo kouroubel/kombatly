@@ -1,73 +1,80 @@
-.container.mt-4
-  %h2 User Management
-  
-  -# Pending Users Section
-  - if @pending_users.any?
-    .card.mb-4
-      .card-header.bg-warning
-        %h4.mb-0
-          %i.fa.fa-clock.me-2
-          Pending Approval
-          %span.badge.bg-dark.ms-2= @pending_users.count
-      .card-body
-        .table-responsive
-          %table.table.table-hover
-            %thead
-              %tr
-                %th Email
-                %th Signed Up
-                %th Actions
-            %tbody
-              - @pending_users.each do |user|
-                %tr
-                  %td= user.email
-                  %td= user.created_at.strftime("%d.%m.%Y")
-                  %td
-                    = form_with model: user, url: user_path(user), method: :patch, class: 'd-flex gap-2 align-items-center' do |f|
-                      = f.select :role, [['Organizer', 'organizer'], ['Team Admin', 'team_admin']], {}, class: 'form-select form-select-sm', style: 'width: auto;'
-                      = f.submit "Approve", class: "btn btn-sm btn-success"
-                      = button_to "Reject", user_path(user), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"
-  
-  -# Approved Users Section
-  .card
-    .card-header.bg-primary.text-white
+%h2 User Management
+
+-# Pending Users Section
+- if @pending_users.any?
+  .card.mb-4
+    .card-header.bg-warning
       %h4.mb-0
-        %i.fa.fa-users.me-2
-        All Users
-        %span.badge.bg-light.text-dark.ms-2= @users.count
+        %i.fa.fa-clock.me-2
+        Pending Approval
+        %span.badge.bg-dark.ms-2= @pending_users.count
     .card-body
       .table-responsive
         %table.table.table-hover
           %thead
             %tr
+              %th Name
               %th Email
-              %th Role
-              %th Team
-              %th Events Organized
+              %th Signed Up
               %th Actions
           %tbody
-            - @users.each do |user|
+            - @pending_users.each do |user|
               %tr
+                %td= user.fullname
                 %td= user.email
+                %td= user.created_at.strftime("%B %d, %Y")
                 %td
-                  - if user.superadmin?
-                    %span.badge.bg-danger Superadmin
-                  - elsif user.organizer?
-                    %span.badge.bg-primary Organizer
-                  - elsif user.team_admin?
-                    %span.badge.bg-info Team Admin
-                %td
-                  - if user.administered_team
-                    = user.administered_team.name
-                  - else
-                    %span.text-muted None
-                %td
-                  - if user.organizer?
-                    = pluralize(user.organized_events.count, 'event')
-                  - else
-                    %span.text-muted N/A
-                %td
-                  - unless user.superadmin?
-                    .d-flex.gap-2
-                      = link_to "Edit", edit_user_path(user), class: "btn btn-sm btn-outline-primary"
-                      = button_to "Delete", user_path(user), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-outline-danger"
+                  = form_with model: user, url: user_path(user), method: :patch, class: 'd-flex gap-2 align-items-center' do |f|
+                    = f.select :role, User.roles.except('superadmin').map { |k, v| [k.titleize, k] }, {}, class: 'form-select form-select-sm', style: 'width: auto;'
+                    = f.submit "Approve", class: "btn btn-sm btn-success"
+                    = button_to "Reject", user_path(user), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"
+
+-# Approved Users Section
+.card
+  .card-header.bg-primary.text-white
+    %h4.mb-0
+      %i.fa.fa-users.me-2
+      All Users
+      %span.badge.bg-light.text-dark.ms-2= @users.count
+  .card-body
+    .table-responsive
+      %table.table.table-hover
+        %thead
+          %tr
+            %th Name
+            %th Email
+            %th Current Role
+            %th Team
+            // %th Events Organized
+            %th Actions
+        %tbody
+          - @users.each do |user|
+            %tr
+              %td= user.fullname
+              %td= user.email
+              %td
+                - if user.superadmin?
+                  %span.badge.bg-danger Superadmin
+                - elsif user.organizer?
+                  %span.badge.bg-primary Organizer
+                - elsif user.team_admin?
+                  %span.badge.bg-info Team Admin
+                - else
+                  %span.badge.bg-secondary= user.role.titleize
+              %td
+                - if user.administered_team
+                  = user.administered_team.name
+                - else
+                  %span.text-muted None
+              // %td
+              //   - if user.organizer?
+              //     = pluralize(user.organized_events.count, 'event')
+              //   - else
+              //     %span.text-muted N/A
+              %td
+                - unless user.superadmin?
+                  .d-flex.gap-2
+                    = form_with model: user, url: user_path(user), method: :patch, class: 'd-inline' do |f|
+                      = f.select :role, User.roles.except('superadmin').map { |k, v| [k.titleize, k] }, { selected: user.role }, class: 'form-select form-select-sm d-inline-block', style: 'width: auto;'
+                      = f.submit "Update", class: "btn btn-sm btn-primary"
+                    = button_to "Delete", user_path(user), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-outline-danger"

@@ -32,4 +32,90 @@
 }
 
 
+.hover-shadow {
+  transition: box-shadow 0.3s ease;
+}
 
+.hover-shadow:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+
+
+.division-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.division-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+-# Add custom styles for the bracket
+.bracket-container {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.round-column {
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.match-box {
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.athlete-slot {
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: #f8f9fa;
+  transition: all 0.2s;
+}
+
+.winner-slot {
+  background: #d4edda !important;
+  border: 2px solid #28a745 !important;
+  font-weight: bold;
+}
+
+.athlete-name {
+  font-size: 1rem;
+  color: #212529;
+}
+
+.team-name {
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.vs-divider {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.winner-badge .badge,
+.pending-badge .badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.champions-podium {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.podium-place {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}

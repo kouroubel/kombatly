@@ -34,7 +34,7 @@ organizer = User.create!(
   email: "organizer@example.com",
   password: "password",
   password_confirmation: "password",
-  role: :organizer,
+  role: :pending,
   confirmed_at: Time.current
 )
 puts "Created Organizer: #{organizer.email}"
@@ -49,7 +49,7 @@ team_admins = 5.times.map do |i|
     email: "teamadmin#{i+1}@example.com",
     password: "password",
     password_confirmation: "password",
-    role: :team_admin,
+    role: :pending,
     confirmed_at: Time.current
   )
 end

@@ -1,55 +1,54 @@
-.container.mt-5
-  .row.justify-content-center
-    .col-lg-8.text-center
-      %h1.display-4.mb-4
-        Welcome to Kombatly Combat Sports
-      %p.lead.text-muted.mb-5
-        Manage athletes, track progress, assign belts, schedule matches —
-        everything your academy needs, all in one place.
-      
-      .d-flex.gap-3.justify-content-center.mb-4
-        = link_to "Browse Events", public_events_path, class: "btn btn-success btn-lg px-4"
-        = link_to "Log In", new_user_session_path, class: "btn btn-primary btn-lg px-4"
-        = link_to "Sign Up", new_user_registration_path, class: "btn btn-outline-primary btn-lg px-4"
+.row.justify-content-center
+  .col-lg-8.text-center
+    %h1.display-4.mb-4
+      Welcome to Kombatly Combat Sports
+    %p.lead.text-muted.mb-5
+      Manage athletes, track progress, assign belts, schedule matches —
+      everything your academy needs, all in one place.
+    
+    .d-flex.gap-3.justify-content-center.mb-4
+      = link_to "Browse Events", public_events_path, class: "btn btn-success btn-lg px-4"
+      = link_to "Log In", new_user_session_path, class: "btn btn-primary btn-lg px-4"
+      = link_to "Sign Up", new_user_registration_path, class: "btn btn-outline-primary btn-lg px-4"
 
+.row.mt-5
+  .col-md-3.text-center
+    .card.shadow-sm.p-4
+      %i.bi.bi-trophy-fill.display-5.text-success
+      %h4.mt-3 View Tournaments
+      %p.text-muted Browse upcoming events and live brackets without signing up.
+      = link_to "See Events →", public_events_path, class: "btn btn-sm btn-outline-success mt-2"
+  
+  .col-md-3.text-center.mt-4.mt-md-0
+    .card.shadow-sm.p-4
+      %i.bi.bi-people-fill.display-5.text-primary
+      %h4.mt-3 Manage Athletes
+      %p.text-muted Easily add, edit, and organize fighters in your academy.
+  
+  .col-md-3.text-center.mt-4.mt-md-0
+    .card.shadow-sm.p-4
+      %i.bi.bi-trophy-fill.display-5.text-primary
+      %h4.mt-3 Track Competitions
+      %p.text-muted Keep a history of fights, results, and belt promotions.
+  
+  .col-md-3.text-center.mt-4.mt-md-0
+    .card.shadow-sm.p-4
+      %i.bi.bi-calendar-event-fill.display-5.text-primary
+      %h4.mt-3 Create Schedules
+      %p.text-muted Build training plans and match schedules effortlessly.
+
+-# Optional: Show upcoming events preview
+- if defined?(@upcoming_events) && @upcoming_events.any?
   .row.mt-5
-    .col-md-3.text-center
-      .card.shadow-sm.p-4
-        %i.bi.bi-trophy-fill.display-5.text-success
-        %h4.mt-3 View Tournaments
-        %p.text-muted Browse upcoming events and live brackets without signing up.
-        = link_to "See Events →", public_events_path, class: "btn btn-sm btn-outline-success mt-2"
-    
-    .col-md-3.text-center.mt-4.mt-md-0
-      .card.shadow-sm.p-4
-        %i.bi.bi-people-fill.display-5.text-primary
-        %h4.mt-3 Manage Athletes
-        %p.text-muted Easily add, edit, and organize fighters in your academy.
-    
-    .col-md-3.text-center.mt-4.mt-md-0
-      .card.shadow-sm.p-4
-        %i.bi.bi-trophy-fill.display-5.text-primary
-        %h4.mt-3 Track Competitions
-        %p.text-muted Keep a history of fights, results, and belt promotions.
-    
-    .col-md-3.text-center.mt-4.mt-md-0
-      .card.shadow-sm.p-4
-        %i.bi.bi-calendar-event-fill.display-5.text-primary
-        %h4.mt-3 Create Schedules
-        %p.text-muted Build training plans and match schedules effortlessly.
-
-  -# Optional: Show upcoming events preview
-  - if defined?(@upcoming_events) && @upcoming_events.any?
-    .row.mt-5
-      .col-12
-        %h2.text-center.mb-4 Upcoming Events
-        .row
-          - @upcoming_events.limit(3).each do |event|
-            .col-md-4.mb-3
-              .card.shadow-sm
-                .card-body
-                  %h5.card-title= event.name
-                  %p.card-text
-                    %i.fa.fa-calendar.me-2
-                    = event.start_date.strftime("%d.%m.%Y")
-                  = link_to "View Bracket", public_event_path(event), class: "btn btn-sm btn-primary"
+    .col-12
+      %h2.text-center.mb-4 Upcoming Events
+      .row
+        - @upcoming_events.limit(3).each do |event|
+          .col-md-4.mb-3
+            .card.shadow-sm
+              .card-body
+                %h5.card-title= event.name
+                %p.card-text
+                  %i.fa.fa-calendar.me-2
+                  = event.start_date.strftime("%d.%m.%Y")
+                = link_to "View Bracket", public_event_path(event), class: "btn btn-sm btn-primary"

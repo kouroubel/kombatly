@@ -1,16 +1,15 @@
-.container.mt-5
-  %h2 Register #{@athlete.fullname} for #{@event.name}
+%h2 Register #{@athlete.fullname} for #{@event.name}
 
-  - if @eligible_divisions.empty?
-    %p.text-muted No eligible divisions.
-  - else
-    = form_with url: athlete_create_registration_for_event_path(@athlete, @event), method: :post, local: true do |f|
-      .mb-3
-        %p Select divisions:
-        - @eligible_divisions.each do |division|
-          .form-check
-            - checked = @athlete.registrations.exists?(division: division)
-            = check_box_tag "division_ids[]", division.id, checked, class: "form-check-input", id: "division_#{division.id}"
-            = label_tag "division_#{division.id}", "#{division.name} (#{division.belt}, #{division.sex}, #{division.min_age}-#{division.max_age} yrs, #{division.min_weight}-#{division.max_weight} kg)", class: "form-check-label"
+- if @eligible_divisions.blank?
+  %p.text-muted No eligible divisions.
+- else
+  = form_with url: athlete_create_registration_for_event_path(@athlete, @event), method: :post, local: true do |f|
+    .mb-3
+      %p Select divisions:
+      - @eligible_divisions.each do |division|
+        .form-check
+          - checked = @athlete.registrations.exists?(division: division)
+          = check_box_tag "division_ids[]", division.id, checked, class: "form-check-input", id: "division_#{division.id}"
+          = label_tag "division_#{division.id}", "#{division.name} (#{division.belt}, #{division.sex}, #{division.min_age}-#{division.max_age} yrs, #{division.min_weight}-#{division.max_weight} kg)", class: "form-check-label"
 
-      = f.submit "Save Registrations", class: "btn btn-primary mt-2"
+    = f.submit "Save Registrations", class: "btn btn-primary mt-2"

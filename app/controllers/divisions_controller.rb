@@ -1,7 +1,6 @@
 class DivisionsController < ApplicationController
   before_action :set_event
   before_action :set_division, only: [:show, :edit, :update, :destroy, :generate_bracket]
-  # before_action :require_can_manage_team, only: [:show]
   before_action :require_can_manage_event, only: [:new, :create, :edit, :update, :destroy, :generate_bracket]
   
   def new
@@ -27,7 +26,7 @@ class DivisionsController < ApplicationController
       render :edit, status: :unprocessable_entity
     end
   end
-    
+  
   def show
     @event = @division.event
     @bouts_by_round = @division.bouts.order(:round, :id).group_by(&:round)
@@ -48,10 +47,6 @@ class DivisionsController < ApplicationController
   
   private
   
-  def require_can_manage_team
-    redirect_to @event, alert: "Not authorized" unless current_user&.can_manage_team?
-  end
-  
   def require_can_manage_event
     unless current_user&.can_manage_event?(@event)
       redirect_to @event, alert: "Not authorized"
@@ -64,14 +59,6 @@ class DivisionsController < ApplicationController
   
   def set_division
     @division = @event.divisions.find(params[:id])
-  end
-  
-  def athlete_age(athlete)
-    return unless athlete.birthdate
-    now = Date.today
-    now.year - athlete.birthdate.year -
-      ((now.month > athlete.birthdate.month ||
-       (now.month == athlete.birthdate.month && now.day >= athlete.birthdate.day)) ? 0 : 1)
   end
   
   def division_params

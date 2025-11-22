@@ -1,16 +1,15 @@
-.container.mt-5
-  %h2 Register Athletes for #{@event.name} #{@division.name}
+%h2 Register Athletes for #{@event.name} #{@division.name}
 
-  - if @eligible_athletes.empty?
-    %p.text-muted No eligible athletes available.
-  - else
-    = form_with url: event_division_registrations_path(@event, @division), method: :post, local: true do |f|
-      .mb-3
-        %p Select athletes to register:
-        - @eligible_athletes.each do |athlete|
-          .form-check
-            - checked = @division.athletes.exists?(athlete.id)
-            = check_box_tag "athlete_ids[]", athlete.id, checked, class: "form-check-input form-check-input-lg", id: "athlete_#{athlete.id}"
-            = label_tag "athlete_#{athlete.id}", athlete.fullname, class: "form-check-label"
+- if @eligible_athletes.blank?  
+  %p.text-muted No eligible athletes available.
+- else
+  = form_with url: event_division_registrations_path(@event, @division), method: :post, local: true do |f|
+    .mb-3
+      %p Select athletes to register:
+      - @eligible_athletes.each do |athlete|
+        .form-check
+          - checked = @division.athletes.exists?(athlete.id)
+          = check_box_tag "athlete_ids[]", athlete.id, checked, class: "form-check-input form-check-input-lg", id: "athlete_#{athlete.id}"
+          = label_tag "athlete_#{athlete.id}", athlete.fullname, class: "form-check-label"
 
-      = f.submit "Save Registrations", class: "btn btn-primary mt-2"
+    = f.submit "Save Registrations", class: "btn btn-primary mt-2"

@@ -1,20 +1,8 @@
 class EventsController < ApplicationController
   before_action :set_event, only: %i[show edit update destroy]
-  # before_action :require_can_manage_team, only: [:index, :show]
   before_action :require_can_create_events, only: [:new, :create]
   before_action :require_can_manage_event, only: [:edit, :update, :destroy]
 
-  # def index
-  #   if current_user.superadmin?
-  #     @events = Event.all.order(start_date: :asc)
-  #   elsif current_user.organizer?
-  #     @events = current_user.organized_events.order(start_date: :asc)
-  #   else
-  #     @events = Event.all.order(start_date: :asc)
-  #   end
-  # end
-  
-  
   def index
     @events = Event.all.order(start_date: :desc)
   end
@@ -59,13 +47,9 @@ class EventsController < ApplicationController
 
   private
   
-  def require_can_manage_team_or_admin
-    redirect_to events_path, alert: "Not authorized" unless current_user&.can_manage_team?
-  end
-  
   def require_can_create_events
     unless current_user&.can_create_events?
-      redirect_to events_path, alert: "Not authorized"
+      redirect_to root_path, alert: "Not authorized"
     end
   end
   

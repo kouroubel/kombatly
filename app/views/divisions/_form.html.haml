@@ -1,47 +1,46 @@
 = render "shared/errors", obj: @division
 
-.container.mt-4.max-w-lg
-  .card.shadow
-    .card-body
-      = form_with(model: [@event, @division], local: true) do |f|
-        .mb-3
-          = f.label :name, class: "form-label"
-          = f.text_field :name, class: "form-control"
+.card.shadow
+  .card-body
+    = form_with(model: [@event, @division], local: true) do |f|
+      .mb-3
+        = f.label :name, class: "form-label"
+        = f.text_field :name, class: "form-control"
 
-        .row
-          .col-md-6
-            .mb-3
-              = f.label :min_age, class: "form-label"
-              = f.number_field :min_age, class: "form-control"
+      .row
+        .col-md-6
+          .mb-3
+            = f.label :min_age, class: "form-label"
+            = f.number_field :min_age, class: "form-control"
 
-          .col-md-6
-            .mb-3
-              = f.label :max_age, class: "form-label"
-              = f.number_field :max_age, class: "form-control"
+        .col-md-6
+          .mb-3
+            = f.label :max_age, class: "form-label"
+            = f.number_field :max_age, class: "form-control"
 
-        .row
-          .col-md-6
-            .mb-3
-              = f.label :min_weight, class: "form-label"
-              = f.number_field :min_weight, step: 0.01, class: "form-control"
+      .row
+        .col-md-6
+          .mb-3
+            = f.label :min_weight, class: "form-label"
+            = f.number_field :min_weight, step: 0.01, class: "form-control"
 
-          .col-md-6
-            .mb-3
-              = f.label :max_weight, class: "form-label"
-              = f.number_field :max_weight, step: 0.01, class: "form-control"
+        .col-md-6
+          .mb-3
+            = f.label :max_weight, class: "form-label"
+            = f.number_field :max_weight, step: 0.01, class: "form-control"
 
-        .mb-3
-          = f.label :belt, class: "form-label"
-          = f.select :belt, Athlete::BELTS, {}, class: "form-select"
+      .mb-3
+        = f.label :belt, class: "form-label"
+        = f.select :belt, Athlete::BELTS, {}, class: "form-select"
 
-        .mb-3
-          = f.label :sex, class: "form-label"
-          = f.select :sex, Athlete::SEXES, {}, class: "form-select"
-          
-        .mb-3
-          = f.label "Cost (€)", class: "form-label"
-          = f.text_field :cost, class: "form-control"
+      .mb-3
+        = f.label :sex, class: "form-label"
+        = f.select :sex, Athlete::SEXES, {}, class: "form-select"
+        
+      .mb-3
+        = f.label "Cost (€)", class: "form-label"
+        = f.text_field :cost, class: "form-control"
 
-        .mt-3
-          = f.submit class: "btn btn-primary"
-          = link_to "Cancel", @event, class: "btn btn-secondary ms-2"
+      .mt-3
+        = f.submit class: "btn btn-primary"
+        = link_to "Cancel", @event, class: "btn btn-secondary ms-2"
