@@ -189,4 +189,10 @@ class Division < ApplicationRecord
     
     athletes
   end
+  
+  def eligible_athletes_registration_count(current_user = nil)
+    registrations.joins(:athlete)
+                 .merge(eligible_athletes(current_user))
+                 .count
+  end
 end

@@ -1,0 +1,19 @@
+-# This partial renders the content inside an athlete slot
+- if athlete
+  - if show_medal && medal_color
+    .text-center
+      %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #{medal_color};" }
+  - elsif show_trophy
+    .text-center
+      %i.fa.fa-trophy.fa-2x.mb-2{ style: "color: #{medal_color};" }
+  - if corner_badge
+    %span.corner-badge{ class: corner_badge[:class], style: corner_badge[:style] }
+      = corner_badge[:text]
+  .athlete-name.fw-bold= athlete.fullname
+  %small.team-name.text-muted= athlete.team.name
+  - if place_badge
+    .winner-badge.mt-2.text-center
+      %span.badge{ class: place_badge[:class], style: place_badge[:style] }
+        = place_badge[:text]
+- else
+  .text-muted.fst-italic TBD

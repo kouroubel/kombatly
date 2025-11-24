@@ -49,7 +49,7 @@ team_admins = 5.times.map do |i|
     email: "teamadmin#{i+1}@example.com",
     password: "password",
     password_confirmation: "password",
-    role: :pending,
+    role: :team_admin,
     confirmed_at: Time.current
   )
 end

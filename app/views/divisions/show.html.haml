@@ -109,11 +109,7 @@
                   draggable: (current_user.can_manage_event?(@event) && !tournament_started) ? "true" : "false",
                   class: (bout.winner_id == bout.athlete_a_id && bout.winner_id.present? && bout.athlete_a_id.present?) ? "winner-slot" : ""
                 }
-                  - if bout.athlete_a
-                    .athlete-name.fw-bold= bout.athlete_a.fullname
-                    %small.team-name.text-muted= bout.athlete_a.team.name
-                  - else
-                    .text-muted.fst-italic TBD
+                  = render 'athlete_slot_content', athlete: bout.athlete_a, show_medal: false, medal_color: nil, show_trophy: false, place_badge: nil, corner_badge: { class: 'bg-danger text-white', style: '', text: 'AKA' }
                 
                 .vs-divider.text-center.my-2
                   %small.text-muted.fw-bold vs
@@ -127,11 +123,7 @@
                   draggable: (current_user.can_manage_event?(@event) && !tournament_started) ? "true" : "false",
                   class: (bout.winner_id == bout.athlete_b_id && bout.winner_id.present? && bout.athlete_b_id.present?) ? "winner-slot" : ""
                 }
-                  - if bout.athlete_b
-                    .athlete-name.fw-bold= bout.athlete_b.fullname
-                    %small.team-name.text-muted= bout.athlete_b.team.name
-                  - else
-                    .text-muted.fst-italic TBD
+                  = render 'athlete_slot_content', athlete: bout.athlete_b, show_medal: false, medal_color: nil, show_trophy: false, place_badge: nil, corner_badge: { class: 'bg-primary text-white', style: '', text: 'SHIRO' }
                 
                 - if bout.winner
                   .winner-badge.mt-2.text-center
@@ -162,11 +154,7 @@
               draggable: "false",
               class: (final_bout.winner_id == final_bout.athlete_a_id && final_bout.winner_id.present? && final_bout.athlete_a_id.present?) ? "winner-slot" : ""
             }
-              - if final_bout.athlete_a
-                .athlete-name.fw-bold= final_bout.athlete_a.fullname
-                %small.team-name.text-muted= final_bout.athlete_a.team.name
-              - else
-                .text-muted.fst-italic TBD
+              = render 'athlete_slot_content', athlete: final_bout.athlete_a, show_medal: false, medal_color: nil, show_trophy: false, place_badge: nil, corner_badge: { class: 'bg-danger text-white', style: '', text: 'AKA' }
             
             .vs-divider.text-center.my-2
               %small.text-muted.fw-bold vs
@@ -180,11 +168,7 @@
               draggable: "false",
               class: (final_bout.winner_id == final_bout.athlete_b_id && final_bout.winner_id.present? && final_bout.athlete_b_id.present?) ? "winner-slot" : ""
             }
-              - if final_bout.athlete_b
-                .athlete-name.fw-bold= final_bout.athlete_b.fullname
-                %small.team-name.text-muted= final_bout.athlete_b.team.name
-              - else
-                .text-muted.fst-italic TBD
+              = render 'athlete_slot_content', athlete: final_bout.athlete_b, show_medal: false, medal_color: nil, show_trophy: false, place_badge: nil, corner_badge: { class: 'bg-primary text-white', style: '', text: 'SHIRO' }
             
             - if final_bout.winner
               .winner-badge.mt-2.text-center
@@ -216,11 +200,7 @@
                 draggable: "false",
                 class: (consolation_bout.winner_id == consolation_bout.athlete_a_id && consolation_bout.winner_id.present? && consolation_bout.athlete_a_id.present?) ? "winner-slot" : ""
               }
-                - if consolation_bout.athlete_a
-                  .athlete-name.fw-bold= consolation_bout.athlete_a.fullname
-                  %small.team-name.text-muted= consolation_bout.athlete_a.team.name
-                - else
-                  .text-muted.fst-italic TBD
+                = render 'athlete_slot_content', athlete: consolation_bout.athlete_a, show_medal: false, medal_color: nil, show_trophy: false, place_badge: nil, corner_badge: { class: 'bg-danger text-white', style: '', text: 'AKA' }
               
               .vs-divider.text-center.my-2
                 %small.text-muted.fw-bold vs
@@ -234,11 +214,7 @@
                 draggable: "false",
                 class: (consolation_bout.winner_id == consolation_bout.athlete_b_id && consolation_bout.winner_id.present? && consolation_bout.athlete_b_id.present?) ? "winner-slot" : ""
               }
-                - if consolation_bout.athlete_b
-                  .athlete-name.fw-bold= consolation_bout.athlete_b.fullname
-                  %small.team-name.text-muted= consolation_bout.athlete_b.team.name
-                - else
-                  .text-muted.fst-italic TBD
+                = render 'athlete_slot_content', athlete: consolation_bout.athlete_b, show_medal: false, medal_color: nil, show_trophy: false, place_badge: nil, corner_badge: { class: 'bg-primary text-white', style: '', text: 'SHIRO' }
               
               - if consolation_bout.winner
                 .winner-badge.mt-2.text-center
@@ -258,45 +234,36 @@
           .match-box.champion-display{ id: "bout-#{champion_bout.id}", data: { bout_id: champion_bout.id } }
             -# 1st Place - Gold
             .slot.athlete-slot.champion-slot-gold{ data: { athlete_id: champion_bout.athlete_a_id } }
-              - if champion_bout.athlete_a
-                .text-center
-                  %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #ffd700;" }
-                .athlete-name.fw-bold= champion_bout.athlete_a.fullname
-                %small.team-name.text-muted= champion_bout.athlete_a.team.name
-                .winner-badge.mt-2.text-center
-                  %span.badge.text-dark{ style: "background-color: #ffd700;" }
-                    🥇 1st Place
-              - else
-                .text-muted.fst-italic TBD
+              = render 'champion_slot_content', 
+                       athlete: champion_bout.athlete_a, 
+                       medal_color: '#ffd700',
+                       medal_icon: 'trophy',
+                       badge_class: 'text-dark',
+                       badge_style: 'background-color: #ffd700;',
+                       badge_text: '🥇 1st Place'
             
             -# 2nd Place - Silver (hide only if final was 1 athlete vs TBD)
             - total_athletes = @division.registrations.count
             - if total_athletes >= 2
               .slot.athlete-slot.champion-slot-silver.mt-3{ data: { athlete_id: champion_bout.loser_id } }
-                - if champion_bout.loser
-                  .text-center
-                    %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #c0c0c0;" }
-                  .athlete-name.fw-bold= champion_bout.loser.fullname
-                  %small.team-name.text-muted= champion_bout.loser.team.name
-                  .winner-badge.mt-2.text-center
-                    %span.badge.text-dark{ style: "background-color: #c0c0c0;" }
-                      🥈 2nd Place
-                - else
-                  .text-muted.fst-italic TBD
+                = render 'champion_slot_content',
+                         athlete: champion_bout.loser,
+                         medal_color: '#c0c0c0',
+                         medal_icon: 'medal',
+                         badge_class: 'text-dark',
+                         badge_style: 'background-color: #c0c0c0;',
+                         badge_text: '🥈 2nd Place'
             
             -# 3rd Place - Bronze (only show if consolation bout exists)
             - if consolation_bout
               .slot.athlete-slot.champion-slot-bronze.mt-3{ data: { athlete_id: champion_bout.athlete_b_id } }
-                - if champion_bout.athlete_b
-                  .text-center
-                    %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #cd7f32;" }
-                  .athlete-name.fw-bold= champion_bout.athlete_b.fullname
-                  %small.team-name.text-muted= champion_bout.athlete_b.team.name
-                  .winner-badge.mt-2.text-center
-                    %span.badge.text-white{ style: "background-color: #cd7f32;" }
-                      🥉 3rd Place
-                - else
-                  .text-muted.fst-italic TBD
+                = render 'champion_slot_content',
+                         athlete: champion_bout.athlete_b,
+                         medal_color: '#cd7f32',
+                         medal_icon: 'medal',
+                         badge_class: 'text-white',
+                         badge_style: 'background-color: #cd7f32;',
+                         badge_text: '🥉 3rd Place'
 
 - else
   .mt-5

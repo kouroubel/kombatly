@@ -1,0 +1,14 @@
+-# This partial renders a champion podium slot
+- if athlete
+  .text-center
+    - if medal_icon == 'trophy'
+      %i.fa.fa-trophy.fa-2x.mb-2{ style: "color: #{medal_color};" }
+    - else
+      %i.fa.fa-medal.fa-2x.mb-2{ style: "color: #{medal_color};" }
+    .athlete-name.fw-bold= athlete.fullname
+    %small.team-name.text-muted.d-block= athlete.team.name
+  .winner-badge.mt-2.text-center
+    %span.badge{ class: badge_class, style: badge_style }
+      = badge_text
+- else
+  .text-muted.fst-italic TBD

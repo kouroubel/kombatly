@@ -50,6 +50,8 @@ Rails.application.routes.draw do
     
     collection do
       post :swap
+      get :render_slot
+      get :render_champion_slot
     end
   end
 end

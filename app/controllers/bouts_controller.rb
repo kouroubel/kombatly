@@ -31,6 +31,60 @@ class BoutsController < ApplicationController
     end
   end
   
+  def render_slot
+    athlete = Athlete.find_by(id: params[:athlete_id])
+    show_medal = params[:show_medal] == 'true'
+    medal_color = params[:medal_color]
+    show_trophy = params[:show_trophy] == 'true'
+    place_badge = nil
+    corner_badge = nil
+    
+    if params[:place_badge].present?
+      place_badge = {
+        class: params[:place_badge][:class],
+        style: params[:place_badge][:style],
+        text: params[:place_badge][:text]
+      }
+    end
+    
+    if params[:corner_badge].present?
+      corner_badge = {
+        class: params[:corner_badge][:class],
+        style: params[:corner_badge][:style],
+        text: params[:corner_badge][:text]
+      }
+    end
+    
+    render partial: 'divisions/athlete_slot_content', 
+           locals: { 
+             athlete: athlete, 
+             show_medal: show_medal,
+             medal_color: medal_color,
+             show_trophy: show_trophy,
+             place_badge: place_badge,
+             corner_badge: corner_badge
+           }
+  end
+
+  def render_champion_slot
+    athlete = Athlete.find_by(id: params[:athlete_id])
+    medal_color = params[:medal_color]
+    medal_icon = params[:medal_icon] || 'medal'
+    badge_class = params[:badge_class]
+    badge_style = params[:badge_style]
+    badge_text = params[:badge_text]
+    
+    render partial: 'divisions/champion_slot_content', 
+           locals: { 
+             athlete: athlete,
+             medal_color: medal_color,
+             medal_icon: medal_icon,
+             badge_class: badge_class,
+             badge_style: badge_style,
+             badge_text: badge_text
+           }
+  end
+  
   def set_winner
     @bout = Bout.find(params[:id])
     winner_id = params[:winner_id]

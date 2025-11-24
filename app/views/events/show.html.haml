@@ -53,7 +53,7 @@
         %td= division.eligible_athletes(current_user).count
 
         / Registered Athletes (adjust method if needed)
-        %td= division.registrations.count
+        %td= division.eligible_athletes_registration_count(current_user)
 
         %td
           = link_to "Edit", edit_event_division_path(@event, division), class: "btn btn-sm btn-primary me-1"

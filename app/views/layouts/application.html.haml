@@ -14,6 +14,9 @@
     = stylesheet_link_tag "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css", integrity: "sha512-...", crossorigin: "anonymous", referrerpolicy: "no-referrer"
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     
+    // AKA/SHIRO font
+    %link{href: "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap", rel: "stylesheet"}
+    
     // in order for data: { "turbo_method": "delete" } to work (otherwise a get request is sent)
     = javascript_include_tag "turbo", type: "module"      
     = javascript_importmap_tags
