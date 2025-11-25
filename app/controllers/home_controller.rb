@@ -7,21 +7,24 @@ class HomeController < ApplicationController
   end
   
   def dashboard
-    # Athlete counts
+   # Load events and counts based on role
     if current_user.superadmin?
       @athletes_count = Athlete.count
       @teams_count = Team.count
       @users_count = User.count
-      @events_count = Event.count
+      @events = Event.includes(:divisions, :registrations).all
     elsif current_user.organizer?
       @athletes_count = current_user.administered_team&.athletes&.count || 0
       @teams_count = current_user.administered_team.present? ? 1 : 0
-      @events_count = current_user.organized_events.count
+      @events = current_user.organized_events.includes(:divisions, :registrations)
     elsif current_user.team_admin?
       @athletes_count = current_user.administered_team&.athletes&.count || 0
       @teams_count = current_user.administered_team.present? ? 1 : 0
-      @events_count = 0
+      @team = current_user.administered_team
+      @events = Event.includes(:divisions, :registrations).all
     end
+    
+    @events_count = @events&.count || 0
     
     # Upcoming events (next 5)
     if current_user.superadmin?

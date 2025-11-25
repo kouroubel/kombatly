@@ -10,7 +10,11 @@ Rails.application.routes.draw do
     # Admin event management (organizers and superadmin)
     resources :events do
       resources :divisions do
-        resources :registrations, only: [:new, :create]
+        resources :registrations, only: [:new, :create, :destroy] do
+          collection do
+            post :toggle
+          end
+        end
         member do
           post :generate_bracket
         end

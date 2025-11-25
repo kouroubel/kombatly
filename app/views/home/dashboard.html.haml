@@ -25,130 +25,128 @@
         %h5 Total Users
         %h2.mb-0= @users_count
 
-- if @upcoming_events&.any?
+- if @events&.any?
   .row.mt-4
-    %h3.mb-3 Upcoming Events
+    %h3.mb-3
+      - if current_user.superadmin?
+        All Events
+      - elsif current_user.organizer?
+        My Events
+      - else
+        Upcoming Events
     
-    - @upcoming_events.each do |ue|
+    - @events.each do |event|
       .col-12.mb-4
         .card.shadow-sm
+          .card-header.d-flex.justify-content-between.align-items-center
+            %h5.mb-0
+              %i.fa.fa-calendar-alt.me-2
+              = event.name
+            %span.badge.bg-primary
+              = event.start_date.strftime('%B %d, %Y')
+          
           .card-body
-            %h5.card-title= ue[:event].name
-            %p.text-muted
-              %i.fa.fa-calendar.me-2
-              = ue[:event].start_date.strftime('%B %d, %Y')
+            %p.mb-3
+              %strong
+                %i.fa.fa-map-marker-alt.me-2
+                Location:
+              = event.location
             
-            - if current_user.organizer? && current_user.can_manage_event?(ue[:event])
-              -# Global Event Section
-              .mb-4
-                %h6.text-primary
-                  %i.fa.fa-globe.me-2
-                  Event Overview (All Teams)
+            - if current_user.superadmin? || current_user.can_manage_event?(event)
+              -# Organizer/Superadmin View - Team Fee Breakdown
+              - team_fees = event.team_fees_breakdown
+              - if team_fees.any?
+                %h6.mt-3.mb-3
+                  %i.fa.fa-money-bill-wave.me-2
+                  Registration Fees by Team
                 
-                - if ue[:global_registrations_count] > 0
-                  %p.mb-1
-                    %strong Total Registrations:
-                    = ue[:global_registrations_count]
-                  %p.mb-1
-                    %strong Total Fees:
-                    = "€#{ue[:global_total_amount]}"
-                - else
-                  %p.text-muted.fst-italic No registrations yet
-                
-                - if ue[:global_divisions_summary].any?
-                  .table-responsive
-                    %table.table.table-bordered.table-sm
-                      %thead
-                        %tr
-                          %th Division
-                          %th Registered Athletes
-                          %th Total Fees (€)
-                      %tbody
-                        - ue[:global_divisions_summary].each do |div_summary|
-                          %tr
-                            %td= div_summary[:division].name
-                            %td= div_summary[:registrations_count]
-                            %td= "€#{div_summary[:total_amount]}"
-              
-              -# Team Section (if organizer has a team)
-              - if current_user.administered_team.present? && ue[:team_athlete_division_pairs].any?
-                %hr
-                %h6.text-success
+                - team_fees.each do |team, fees|
+                  .card.mb-3.border-info
+                    .card-header.bg-info.bg-opacity-10
+                      .d-flex.justify-content-between.align-items-center
+                        %span
+                          %i.fa.fa-users.me-2
+                          = team.name
+                        %span.badge.bg-info
+                          Total: €#{fees[:total]}
+                    
+                    .card-body.p-2
+                      %table.table.table-sm.table-striped.mb-0
+                        %thead
+                          %tr.small
+                            %th Division
+                            %th.text-center Athletes
+                            %th.text-end Cost/Athlete
+                            %th.text-end Subtotal
+                        %tbody
+                          - fees[:by_division].each do |division, div_data|
+                            %tr.small
+                              %td= division.name
+                              %td.text-center= div_data[:count]
+                              %td.text-end €#{div_data[:cost]}
+                              %td.text-end
+                                %strong €#{div_data[:total]}
+                -
+                -# Grand Total
+                .alert.alert-success.mb-0
+                  .d-flex.justify-content-between.align-items-center
+                    %strong
+                      %i.fa.fa-coins.me-2
+                      Grand Total
+                    %h5.mb-0.text-success
+                      €#{team_fees.values.sum { |f| f[:total] }}
+                      
+              - else
+                .alert.alert-info.mb-0
+                  %i.fa.fa-info-circle.me-2
+                  No registrations yet for this event.
+            
+            - elsif current_user.team_admin? && current_user.administered_team.present?
+              -# Team Admin View - Their Team Only
+              - team_registrations = event.registrations.joins(:athlete).where(athletes: { team_id: current_user.administered_team.id }).includes(:division, :athlete)
+              - if team_registrations.any?
+                %h6.mt-3.mb-3
                   %i.fa.fa-users.me-2
                   Your Team's Registrations
-                %ul.mb-0
-                  - ue[:team_athlete_division_pairs].each do |pair|
-                    %li
-                      %strong= pair[:athlete].fullname
-                      = "— #{pair[:division].name}"
-            
-            - elsif current_user.administered_team.present?
-              - if ue[:team_registrations_count] > 0
-                %p.mb-1
-                  %strong Your Team's Registrations:
-                  = ue[:team_registrations_count]
-                %p.mb-1
-                  %strong Total Fees:
-                  = "€#{ue[:team_total_amount]}"
-              - else
-                %p.text-muted.fst-italic Your team has no registrations yet
-              
-              - if ue[:team_divisions_summary].any?
-                %h6.mt-3 Per Division Summary
-                .table-responsive
-                  %table.table.table-bordered.table-sm
-                    %thead
+                
+                -# Group by division
+                - registrations_by_division = team_registrations.group_by(&:division)
+                %table.table.table-sm.table-striped
+                  %thead
+                    %tr
+                      %th Division
+                      %th Athletes
+                      %th.text-end Cost/Athlete
+                      %th.text-end Subtotal
+                  %tbody
+                    - registrations_by_division.each do |division, regs|
                       %tr
-                        %th Division
-                        %th Registered Athletes
-                        %th Total Fees (€)
-                    %tbody
-                      - ue[:team_divisions_summary].each do |div_summary|
-                        %tr
-                          %td= div_summary[:division].name
-                          %td= div_summary[:registrations_count]
-                          %td= "€#{div_summary[:total_amount]}"
-              
-              - if ue[:team_athlete_division_pairs].any?
-                %h6.mt-3
-                  %i.fa.fa-users.me-2
-                  Registered Athletes
-                %ul.mb-0
-                  - ue[:team_athlete_division_pairs].each do |pair|
-                    %li
-                      %strong= pair[:athlete].fullname
-                      = "— #{pair[:division].name}"
-            
-            - else
-              - if ue[:global_registrations_count] > 0
-                %p.mb-1
-                  %strong Registrations:
-                  = ue[:global_registrations_count]
-                %p.mb-1
-                  %strong Total Fees:
-                  = "€#{ue[:global_total_amount]}"
+                        %td= division.name
+                        %td
+                          %ul.mb-0.ps-3
+                            - regs.each do |reg|
+                              %li.small= reg.athlete.fullname
+                        %td.text-end €#{division.cost}
+                        %td.text-end
+                          %strong €#{regs.count * division.cost}
+                
+                .alert.alert-success.mt-3.mb-0
+                  .d-flex.justify-content-between.align-items-center
+                    %strong Total Fees:
+                    %strong €#{team_registrations.sum { |r| r.division.cost }}
               - else
-                %p.text-muted.fst-italic No registrations yet
-              
-              - if ue[:global_divisions_summary].any?
-                %h6.mt-3 Per Division Summary
-                .table-responsive
-                  %table.table.table-bordered.table-sm
-                    %thead
-                      %tr
-                        %th Division
-                        %th Registered Athletes
-                        %th Total Fees (€)
-                    %tbody
-                      - ue[:global_divisions_summary].each do |div_summary|
-                        %tr
-                          %td= div_summary[:division].name
-                          %td= div_summary[:registrations_count]
-                          %td= "€#{div_summary[:total_amount]}"
+                .alert.alert-info.mb-0
+                  %i.fa.fa-info-circle.me-2
+                  Your team has no registrations for this event yet.
             
             .mt-3
-              = link_to "View Event Details", event_path(ue[:event]), class: "btn btn-primary btn-sm"
+              = link_to "View Event", event_path(event), class: "btn btn-primary btn-sm me-2"
+              - if current_user.can_manage_event?(event)
+                = link_to "Edit Event", edit_event_path(event), class: "btn btn-secondary btn-sm"
+              - elsif current_user.team_admin?
+                = link_to "Register Athletes", event_path(event), class: "btn btn-success btn-sm"
+
 - else
   .alert.alert-info.mt-4
     %i.fa.fa-info-circle.me-2
-    No upcoming events scheduled.
+    No events available.

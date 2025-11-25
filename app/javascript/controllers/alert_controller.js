@@ -4,10 +4,12 @@ export default class extends Controller {
   connect() {
     // Auto-dismiss after 3 seconds
     setTimeout(() => {
-      const bsAlert = bootstrap.Alert.getInstance(this.element)
-      if (bsAlert) {
-        bsAlert.close()
-      }
+      this.close()
     }, 3000)
+  }
+
+  close() {
+    const alert = bootstrap.Alert.getOrCreateInstance(this.element)
+    alert.close()
   }
 }

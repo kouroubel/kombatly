@@ -28,10 +28,9 @@
       = @division.cost
 
     .mt-3.d-flex.gap-2.flex-wrap
-      - if current_user.team? || current_user.admin?
-        = link_to "Register Athletes", new_event_division_registration_path(@event, @division), class: "btn btn-success"
+      = link_to "Register Athletes", new_event_division_registration_path(@event, @division), class: "btn btn-success"
         
-      - if current_user.admin?
+      - if current_user.can_manage_event?(@division.event) && @division.registrations.any?
         = link_to "Generate Bracket", generate_bracket_event_division_path(@division.event, @division), class: "btn text-white", style: "background-color: #9d4edd;", data: { turbo_method: :post }
         
       = link_to "Edit Division", edit_event_division_path(@division.event, @division), class: "btn btn-primary"
@@ -50,20 +49,48 @@
         %th Sex
         %th Team
         %th Registered
+        %th Actions
     %tbody
       - @eligible_athletes.each do |athlete|
+        - registration = @division.registrations.find_by(athlete_id: athlete.id)
+        - is_registered = @division.athletes.include?(athlete)
+        - is_own_team = current_user.administered_team.present? && athlete.team_id == current_user.administered_team.id
+        - can_register = current_user.superadmin? || is_own_team
+        - can_unregister = current_user.superadmin? || current_user.can_manage_event?(@event) || is_own_team
         %tr
-          %td= athlete.fullname
+          %td
+            - if is_own_team
+              %i.fa.fa-star.text-success.me-2
+            = athlete.fullname
           %td= athlete.birthdate
           %td= athlete.weight
           %td= athlete.belt
           %td= athlete.sex
           %td= athlete.team.name
           %td.text-center
-            - if @division.athletes.include?(athlete)
+            - if is_registered
               %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
             - else
               %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg
+          %td.text-center
+            - if is_registered && registration
+              - if can_unregister
+                = button_to event_division_registration_path(@event, @division, registration), 
+                  method: :delete, 
+                  data: { turbo_confirm: "Unregister #{athlete.fullname}?" }, 
+                  class: "btn btn-sm btn-link p-0", 
+                  title: "Unregister" do
+                  %i.fa.fa-trash.text-danger.fa-lg
+              - else
+                %span.text-muted —
+            - elsif can_register
+              = button_to toggle_event_division_registrations_path(@event, @division, athlete_ids: [athlete.id]), 
+                method: :post, 
+                class: "btn btn-sm btn-link p-0", 
+                title: "Register" do
+                %i.fa.fa-plus-circle.text-success.fa-lg
+            - else
+              %span.text-muted ...
 
 - if @bouts_by_round.present?
   .mt-5

@@ -11,14 +11,14 @@
         = message
         %button.btn-close.btn-close-sm{ type: "button", "data-bs-dismiss" => "alert", "aria-label" => "Close" }
 
-:javascript
-  document.addEventListener('DOMContentLoaded', function() {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-      setTimeout(function() {
-        const bsAlert = new bootstrap.Alert(alert);
-        bsAlert.close();
-      }, 3000);
-    });
-  });
+// :javascript
+//   document.addEventListener('DOMContentLoaded', function() {
+//     const alerts = document.querySelectorAll('.alert');
+//     alerts.forEach(function(alert) {
+//       setTimeout(function() {
+//         const bsAlert = new bootstrap.Alert(alert);
+//         bsAlert.close();
+//       }, 3000);
+//     });
+//   });
   

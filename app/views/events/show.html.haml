@@ -1,60 +1,102 @@
 .card
   .card-header
     %h1.mb-0= @event.name
-
   .card-body
     %p
       %strong Date:
-      = @event.start_date.strftime("%d.%m.%Y") if @event.start_date
+      = @event.start_date.strftime("%d %b %Y") if @event.start_date
     %p
       %strong Location:
       = @event.location
     %p
       %strong Description:
       = @event.description
-
     .mt-4
-      = link_to "Edit", edit_event_path(@event), class: "btn btn-primary me-2"
+      - if current_user.can_manage_event?(@event)
+        = link_to "Edit", edit_event_path(@event), class: "btn btn-primary me-2"
+        = link_to "Delete", event_path(@event), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger me-2"
       = link_to "Back", events_path, class: "btn btn-secondary"
-      = link_to "Delete", event_path(@event), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger"
 
+%h3.mt-4 Divisions
+- if current_user.can_manage_event?(@event)
+  = link_to "New Division", new_event_division_path(@event), class: "btn btn-success mb-3"
 
-%h3.mt-3 Divisions
-= link_to "New Division", new_event_division_path(@event), class: "btn btn-success mb-3"
-
-%table.table.table-striped.table-bordered
-  %thead
-    %tr
-      %th Name
-      %th Age Range
-      %th Weight Range
-      %th Belt
-      %th Sex
-      %th Cost(€)
-      %th Eligible
-      %th Registered
-      %th Actions
-  %tbody
-    - @event.divisions.each do |division|
+.table-responsive
+  %table.table.table-striped.table-bordered
+    %thead
       %tr
-        %td= link_to division.name, event_division_path(@event, division)
+        %th Name
+        %th Age Range
+        %th Weight Range
+        %th Belt
+        %th Sex
+        %th Cost(€)
+        - if current_user.superadmin? || (current_user.organizer? && current_user.can_manage_event?(@event))
+          %th Eligible
+        %th Registered
+        %th Actions
+    %tbody
+      - @event.divisions.each do |division|
+        %tr
+          %td= link_to division.name, event_division_path(@event, division)
+          %td= "#{division.min_age}–#{division.max_age}"
+          %td= "#{division.min_weight}–#{division.max_weight} kg"
+          %td= division.belt
+          %td= division.sex
+          %td= division.cost
+          
+          - if current_user.superadmin? || (current_user.organizer? && current_user.can_manage_event?(@event))
+            %td= division.eligible_athletes(current_user).count
+          
+          %td= division.registrations.count
+          
+          %td
+            - if current_user.can_manage_event?(@event)
+              = link_to "Edit", edit_event_division_path(@event, division), class: "btn btn-sm btn-primary me-1"
+              = link_to "Delete", event_division_path(@event, division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger me-1"
+            - elsif current_user.administered_team.present?
+              = link_to "Register Athletes", new_event_division_registration_path(@event, division), class: "btn btn-sm btn-success me-1"
 
-        / Age Range
-        %td= "#{division.min_age}–#{division.max_age}"
-
-        / Weight Range
-        %td= "#{division.min_weight}–#{division.max_weight} kg"
-
-        %td= division.belt
-        %td= division.sex
-        %td= division.cost
-
-        / Eligible Athletes
-        %td= division.eligible_athletes(current_user).count
-
-        / Registered Athletes (adjust method if needed)
-        %td= division.eligible_athletes_registration_count(current_user)
-
-        %td
-          = link_to "Edit", edit_event_division_path(@event, division), class: "btn btn-sm btn-primary me-1"
-          = link_to "Delete", event_division_path(@event, division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger"
+-# ORGANIZER'S TEAM VIEW (if organizer has a team)
+- if current_user.organizer? && current_user.can_manage_event?(@event) && current_user.administered_team.present?
+  %h4.mt-5.text-success
+    %i.fa.fa-users.me-2
+    Your Team: #{current_user.administered_team.name}
+  
+  .table-responsive
+    %table.table.table-striped.table-bordered.table-sm
+      %thead
+        %tr
+          %th Division
+          %th Age Range
+          %th Weight Range
+          %th Belt
+          %th Eligible Athletes
+          %th Registered Athletes
+          %th Actions
+      %tbody
+        - @event.divisions.each do |division|
+          - team_eligible = division.eligible_athletes(current_user).where(team_id: current_user.administered_team.id)
+          - team_registered = division.registrations.joins(:athlete).where(athletes: { team_id: current_user.administered_team.id })
+          - if team_eligible.any? || team_registered.any?
+            %tr
+              %td= link_to division.name, event_division_path(@event, division)
+              %td= "#{division.min_age}–#{division.max_age}"
+              %td= "#{division.min_weight}–#{division.max_weight} kg"
+              %td= division.belt
+              %td
+                - if team_eligible.any?
+                  %span.badge.bg-success= team_eligible.count
+                - else
+                  %span.text-muted 0
+              %td
+                - if team_registered.any?
+                  %span.badge.bg-primary= team_registered.count
+                - else
+                  %span.text-muted 0
+              %td
+                = link_to "Register Athletes", new_event_division_registration_path(@event, division), class: "btn btn-sm btn-success"
+        
+        - if @event.divisions.none? { |d| d.eligible_athletes(current_user).where(team_id: current_user.administered_team.id).any? }
+          %tr
+            %td.text-center.text-muted{colspan: 7} No eligible athletes from your team for any division
