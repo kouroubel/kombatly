@@ -81,31 +81,56 @@ class RegistrationsController < ApplicationController
   
   # Athlete-based registration (register ONE athlete for multiple divisions)
   # Used by checkbox form at /athletes/:athlete_id/events/:event_id/register
-  def new_for_athlete
-    @divisions = @event.divisions.select do |div|
-      eligible_ids = div.eligible_athletes(current_user).pluck(:id)
-      eligible_ids.include?(@athlete.id)
-    end
+  # def new_for_athlete
+  #   @divisions = @event.divisions.select do |div|
+  #     eligible_ids = div.eligible_athletes(current_user).pluck(:id)
+  #     eligible_ids.include?(@athlete.id)
+  #   end
     
-    @registered_division_ids = @athlete.divisions.where(event: @event).pluck(:id)
-  end
+  #   @eligible_divisions = @athlete.divisions.where(event: @event)
+  # end
   
+  # def create_for_athlete
+  #   division_ids = Array(params[:division_ids]).compact.map(&:to_i)
+  #   current_registered = @athlete.registrations.joins(:division).where(divisions: { event_id: @event.id })
+  #   current_division_ids = current_registered.pluck(:division_id)
+    
+  #   # Remove unchecked
+  #   (current_division_ids - division_ids).each do |div_id|
+  #     @athlete.registrations.joins(:division).find_by(divisions: { id: div_id, event_id: @event.id })&.destroy
+  #   end
+    
+  #   # Add new
+  #   (division_ids - current_division_ids).each do |div_id|
+  #     @athlete.registrations.create!(division_id: div_id)
+  #   end
+    
+  #   redirect_to athletes_path, notice: "#{@athlete.fullname} registered successfully!"
+  # end
+  
+  def new_for_athlete
+    # Eligible divisions for this athlete
+    @eligible_divisions = @event.divisions.select do |d|
+      d.eligible_athletes.include?(@athlete)
+    end
+  end
+
+  # POST /athletes/:athlete_id/events/:event_id/register
   def create_for_athlete
-    division_ids = Array(params[:division_ids]).compact.map(&:to_i)
-    current_registered = @athlete.registrations.joins(:division).where(divisions: { event_id: @event.id })
-    current_division_ids = current_registered.pluck(:division_id)
-    
-    # Remove unchecked
-    (current_division_ids - division_ids).each do |div_id|
-      @athlete.registrations.joins(:division).find_by(divisions: { id: div_id, event_id: @event.id })&.destroy
+    division_ids = params[:division_ids] || []
+  
+    # First, remove registrations for divisions that were unchecked
+    @athlete.registrations.where(division: @event.divisions)
+            .where.not(division_id: division_ids)
+            .destroy_all
+  
+    # Then, create registrations for checked divisions if they don't exist
+    division_ids.each do |division_id|
+      division = @event.divisions.find(division_id)
+      @athlete.registrations.find_or_create_by(division: division)
     end
-    
-    # Add new
-    (division_ids - current_division_ids).each do |div_id|
-      @athlete.registrations.create!(division_id: div_id)
-    end
-    
-    redirect_to athletes_path, notice: "#{@athlete.fullname} registered successfully!"
+  
+    redirect_to athlete_path(@athlete), notice: "Registrations updated."
   end
   
   private

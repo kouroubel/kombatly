@@ -75,4 +75,9 @@ Rails.application.configure do
   config.action_controller.raise_on_missing_callback_actions = true
   
   config.hosts << "6bcdca2efb0844878f6b07396950ce3d.vfs.cloud9.us-east-2.amazonaws.com"
+  
+  config.action_mailer.default_url_options = { 
+    host: ENV['C9_HOSTNAME'] || '6bcdca2efb0844878f6b07396950ce3d.vfs.cloud9.us-east-2.amazonaws.com',
+    protocol: 'https'
+  }
 end

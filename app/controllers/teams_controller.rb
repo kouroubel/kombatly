@@ -28,7 +28,7 @@ class TeamsController < ApplicationController
     
     if @team.save
       TeamAdminRole.create!(user: current_user, team: @team)
-      redirect_to @team, notice: "Team created successfully."
+      redirect_to teams_path, notice: "Team created successfully."
     else
       render :new, status: :unprocessable_entity
     end
@@ -39,7 +39,7 @@ class TeamsController < ApplicationController
   
   def update
     if @team.update(team_params)
-      redirect_to @team, notice: "Team updated successfully."
+      redirect_to teams_path, notice: "Team updated successfully."
     else
       render :edit, status: :unprocessable_entity
     end
