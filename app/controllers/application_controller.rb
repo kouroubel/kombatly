@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   # before_action :configure_permitted_parameters, if: :devise_controller?    #allow fullname on devise registration
   before_action :configure_permitted_parameters, if: -> { devise_controller? && action_name.in?(%w[create update]) }  #allow fullname on devise registration
 
+
   protected
 
     def configure_permitted_parameters

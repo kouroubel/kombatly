@@ -37,7 +37,7 @@ Rails.application.routes.draw do
   # ============================================================================
   # OTHER ROUTES
   # ============================================================================
-  
+
   devise_for :users
   resources :users, only: [:index, :edit, :update, :destroy]
   resources :teams
