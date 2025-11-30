@@ -6,15 +6,23 @@
         = f.text_field :name, class: "form-control"
 
       .mb-3
-        = f.label :location, class: "form-label"
-        = f.text_field :location, class: "form-control"
-
-      .mb-3
         = f.label :start_date, class: "form-label"
         = f.date_field :start_date, class: "form-control"
+        
+      .mb-3
+        = f.label :end_date, class: "form-label"
+        = f.date_field :end_date, class: "form-control"
+        
+      .mb-3
+        = f.label :location, class: "form-label"
+        = f.text_field :location, class: "form-control"
+        
+      .mb-3
+        = f.label :sport_type, class: "form-label"
+        = f.text_field :sport_type, class: "form-control"
 
       .mb-3
         = f.label :description, class: "form-label"
         = f.text_area :description, rows: 4, class: "form-control"
 
-      = f.submit class: "btn btn-primary w-100"
+      = f.submit class: "btn btn-primary"

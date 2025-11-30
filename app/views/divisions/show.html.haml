@@ -6,26 +6,34 @@
     %p
       %strong Event:
       = link_to @division.event.name, @division.event
-
-    %p
-      %strong Age Range:
-      = "#{@division.min_age} – #{@division.max_age}"
-
-    %p
-      %strong Weight Range:
-      = "#{@division.min_weight} – #{@division.max_weight} kg"
-
-    %p
-      %strong Belt:
-      = @division.belt
-
+      
     %p
       %strong Sex:
       = @division.sex
+
+    %p
+      %strong Age Range:
+      = "#{@division.min_age} - #{@division.max_age}"
+      
+    %p
+      %strong Weight Range:
+      = "#{@division.min_weight} - #{@division.max_weight} kg"
+
+    %p
+      %strong Rank:
+      = "#{@division.min_rank} - #{@division.max_rank}"
+
+    %p
+      %strong #{@division.event.competition_area_name}:
+      = @division.court
       
     %p
       %strong Cost (€):
       = @division.cost
+      
+    %p
+      %strong Rules:
+      = @division.description
 
     .mt-3.d-flex.gap-2.flex-wrap
       = link_to "Register Athletes", new_event_division_registration_path(@event, @division), class: "btn btn-success"
@@ -36,61 +44,113 @@
       = link_to "Edit Division", edit_event_division_path(@division.event, @division), class: "btn btn-primary"
       = link_to "Back to Event", @division.event, class: "btn btn-secondary"
       = link_to "Delete", event_division_path(@division.event, @division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger"
-
+      
+-# Registered Teams Section
 .mt-4
-  %h3 Eligible Athletes
-  %table.table.table-striped.table-bordered
-    %thead
-      %tr
-        %th Name
-        %th Birthdate
-        %th Weight (kg)
-        %th Belt
-        %th Sex
-        %th Team
-        %th Registered
-        %th Actions
-    %tbody
-      - @eligible_athletes.each do |athlete|
-        - registration = @division.registrations.find_by(athlete_id: athlete.id)
-        - is_registered = @division.athletes.include?(athlete)
-        - is_own_team = current_user.administered_team.present? && athlete.team_id == current_user.administered_team.id
-        - can_register = current_user.superadmin? || is_own_team
-        - can_unregister = current_user.superadmin? || current_user.can_manage_event?(@event) || is_own_team
-        %tr
-          %td
-            - if is_own_team
-              %i.fa.fa-star.text-success.me-2
-            = athlete.fullname
-          %td= athlete.birthdate
-          %td= athlete.weight
-          %td= athlete.belt
-          %td= athlete.sex
-          %td= athlete.team.name
-          %td.text-center
-            - if is_registered
-              %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
-            - else
-              %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg
-          %td.text-center
-            - if is_registered && registration
-              - if can_unregister
-                = button_to event_division_registration_path(@event, @division, registration), 
-                  method: :delete, 
-                  data: { turbo_confirm: "Unregister #{athlete.fullname}?" }, 
-                  class: "btn btn-sm btn-link p-0", 
-                  title: "Unregister" do
-                  %i.fa.fa-trash.text-danger.fa-lg
-              - else
-                %span.text-muted —
-            - elsif can_register
-              = button_to toggle_event_division_registrations_path(@event, @division, athlete_ids: [athlete.id]), 
-                method: :post, 
-                class: "btn btn-sm btn-link p-0", 
-                title: "Register" do
-                %i.fa.fa-plus-circle.text-success.fa-lg
-            - else
-              %span.text-muted ...
+  .card
+    .card-header
+      %h4.mb-0
+        %i.fa.fa-users.me-2
+        Registered Teams
+        %span.badge.bg-primary.ms-2= @teams_with_registrations.count
+    .card-body
+      - if @teams_with_registrations.any?
+        .table-responsive
+          %table.table.table-hover.table-striped
+            %thead
+              %tr
+                %th Team Name
+                %th Coach
+                %th Registered Athletes
+            %tbody
+              - @teams_with_registrations.each do |team|
+                - coach = team.team_admin_role&.user
+                - registered_count = @division.registrations.joins(:athlete).where(athletes: { team_id: team.id }).count
+                %tr
+                  %td
+                    %strong= team.name
+                  %td
+                    - if coach
+                      = coach.fullname
+                      %br
+                      %small.text-muted= team.organization
+                    - else
+                      %span.text-muted No coach assigned
+                  %td
+                    %span.badge.bg-primary= registered_count
+      - else
+        .alert.alert-info.mb-0
+          %i.fa.fa-info-circle.me-2
+          No teams have registered athletes in this division yet.
+
+-# Eligible Athletes Section
+.mt-4
+  .card
+    .card-header
+      %h4.mb-0
+        %i.fa.fa-user-friends.me-2
+        Eligible Athletes
+        %span.badge.bg-primary.ms-2= @eligible_athletes.count
+    .card-body
+      - if @eligible_athletes.any?
+        .table-responsive
+          %table.table.table-hover.table-striped
+            %thead
+              %tr
+                %th Name
+                %th Birthdate
+                %th Weight (kg)
+                %th Rank
+                %th Sex
+                %th Team
+                %th Registered
+                %th Actions
+            %tbody
+              - @eligible_athletes.each do |athlete|
+                - registration = @division.registrations.find_by(athlete_id: athlete.id)
+                - is_registered = @division.athletes.include?(athlete)
+                - is_own_team = current_user.administered_team.present? && athlete.team_id == current_user.administered_team.id
+                - can_register = current_user.superadmin? || is_own_team
+                - can_unregister = current_user.superadmin? || current_user.can_manage_event?(@event) || is_own_team
+                %tr
+                  %td
+                    - if is_own_team
+                      %i.fa.fa-star.text-success.me-2
+                    = athlete.fullname
+                  %td= athlete.birthdate.strftime("%d.%m.%Y")
+                  %td= athlete.weight
+                  %td
+                    %span.badge.bg-secondary= athlete.rank
+                  %td= athlete.sex
+                  %td= athlete.team.name
+                  %td.text-center
+                    - if is_registered
+                      %i.fa.fa-solid.fa-check-to-slot.text-success.fa-lg
+                    - else
+                      %i.fa.fa-solid.fa-square-xmark.text-danger.fa-lg
+                  %td.text-center
+                    - if is_registered && registration
+                      - if can_unregister
+                        = button_to event_division_registration_path(@event, @division, registration), 
+                          method: :delete, 
+                          data: { turbo_confirm: "Unregister #{athlete.fullname}?" }, 
+                          class: "btn btn-sm btn-link p-0", 
+                          title: "Unregister" do
+                          %i.fa.fa-trash.text-danger.fa-lg
+                      - else
+                        %span.text-muted —
+                    - elsif can_register
+                      = button_to toggle_event_division_registrations_path(@event, @division, athlete_ids: [athlete.id]), 
+                        method: :post, 
+                        class: "btn btn-sm btn-link p-0", 
+                        title: "Register" do
+                        %i.fa.fa-plus-circle.text-success.fa-lg
+                    - else
+                      %span.text-muted —
+      - else
+        .alert.alert-info.mb-0
+          %i.fa.fa-info-circle.me-2
+          No eligible athletes for this division.
 
 - if @bouts_by_round.present?
   .mt-5

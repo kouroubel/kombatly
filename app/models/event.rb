@@ -8,6 +8,25 @@ class Event < ApplicationRecord
   validates :name, presence: true
   validates :start_date, presence: true
   
+  SPORT_TYPES = {
+    'karate' => 'Karate',
+    'taekwondo' => 'Taekwondo',
+    'judo' => 'Judo'
+    # Add more as needed
+  }
+  
+  validates :sport_type, inclusion: { in: SPORT_TYPES.keys }
+  
+  AREA_NAMES = {
+    'karate' => 'Tatami',
+    'taekwondo' => 'Court',
+    'judo' => 'Mat'
+  }
+  
+  def competition_area_name
+    AREA_NAMES[sport_type] || 'Area'
+  end
+    
   def team_fees_breakdown
     # Get all registrations for this event with athlete and division
     regs = registrations.includes(:athlete, :division)

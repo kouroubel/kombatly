@@ -87,6 +87,6 @@ class AthletesController < ApplicationController
   end
   
   def athlete_params
-    params.require(:athlete).permit(:fullname, :birthdate, :weight, :belt, :sex, :card_number, :team_id)
+    params.require(:athlete).permit(:fullname, :birthdate, :weight, :rank, :sex, :card_number, :team_id)
   end
 end

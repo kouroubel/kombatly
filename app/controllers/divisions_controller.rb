@@ -10,7 +10,7 @@ class DivisionsController < ApplicationController
   def create
     @division = @event.divisions.new(division_params)
     if @division.save
-      redirect_to @event, notice: "Division created successfully."
+      redirect_to event_division_path(@division), notice: "Division created successfully."
     else
       render :new, status: :unprocessable_entity
     end
@@ -21,7 +21,7 @@ class DivisionsController < ApplicationController
   
   def update
     if @division.update(division_params)
-      redirect_to @event, notice: "Division updated successfully."
+      redirect_to event_division_path(@division), notice: "Division updated successfully."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -31,6 +31,12 @@ class DivisionsController < ApplicationController
     @event = @division.event
     @bouts_by_round = @division.bouts.order(:round, :id).group_by(&:round)
     @eligible_athletes = @division.eligible_athletes(current_user)
+    
+    # Get teams that have registered athletes in this division
+    @teams_with_registrations = Team.joins(athletes: :registrations)
+                                   .where(registrations: { division_id: @division.id })
+                                   .distinct
+                                   .includes(:team_admin_role)
   end
   
   def destroy
@@ -63,10 +69,12 @@ class DivisionsController < ApplicationController
   
   def division_params
     params.require(:division).permit(
-      :name, :cost,
+      :name, :sex,
       :min_age, :max_age,
       :min_weight, :max_weight,
-      :belt, :sex
+      :min_rank, :max_rank,
+      :court, :description,
+      :cost
     )
   end
 end

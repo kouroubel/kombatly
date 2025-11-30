@@ -16,12 +16,12 @@
         = f.number_field :weight, step: 0.1, class: "form-control"
     
       .mb-3
-        = f.label :belt
-        = f.select :belt,
-                     Athlete::BELTS,
-                     { prompt: "Select Belt" },
-                     class: "form-select"
-                     
+        = f.label :rank, "Rank Level"
+        = f.number_field :rank, 
+                         in: 1..13, 
+                         class: "form-control",
+                         placeholder: "Enter Kyu rank"
+
       .mb-3
         = f.label :sex
         = f.select :sex,

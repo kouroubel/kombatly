@@ -6,6 +6,10 @@
       .mb-3
         = f.label :name, class: "form-label"
         = f.text_field :name, class: "form-control"
+        
+      .mb-3
+        = f.label :sex, class: "form-label"
+        = f.select :sex, Athlete::SEXES, {}, class: "form-select"
 
       .row
         .col-md-6
@@ -29,13 +33,24 @@
             = f.label :max_weight, class: "form-label"
             = f.number_field :max_weight, step: 0.01, class: "form-control"
 
-      .mb-3
-        = f.label :belt, class: "form-label"
-        = f.select :belt, Athlete::BELTS, {}, class: "form-select"
+      .row
+        .col-md-6
+          .mb-3
+            = f.label :min_rank, class: "form-label"
+            = f.number_field :min_rank, class: "form-control"
 
+        .col-md-6
+          .mb-3
+            = f.label :max_rank, class: "form-label"
+            = f.number_field :max_rank, class: "form-control"
+        
       .mb-3
-        = f.label :sex, class: "form-label"
-        = f.select :sex, Athlete::SEXES, {}, class: "form-select"
+        = f.label "Rules", class: "form-label"
+        = f.text_area :description, class: "form-control"
+        
+      .mb-3
+        = f.label @division.event.competition_area_name, class: "form-label"
+        = f.text_field :court, class: "form-control"
         
       .mb-3
         = f.label "Cost (€)", class: "form-label"
@@ -43,4 +58,3 @@
 
       .mt-3
         = f.submit class: "btn btn-primary"
-        = link_to "Cancel", @event, class: "btn btn-secondary ms-2"

@@ -13,8 +13,8 @@
       %strong Weight:
       = "#{@athlete.weight} kg" if @athlete.weight
     %p
-      %strong Belt:
-      = @athlete.belt
+      %strong Rank:
+      = @athlete.rank
     %p
       %strong Sex:
       = @athlete.sex
@@ -41,7 +41,7 @@
     %thead
       %tr
         %th Division
-        %th Belt
+        %th Max Rank
         %th Sex
         %th Age Range
         %th Weight Range
@@ -51,7 +51,7 @@
         - next unless division.eligible_athletes.include?(@athlete)
         %tr
           %td= division.name
-          %td= division.belt
+          %td= division.max_rank
           %td= division.sex
           %td= "#{division.min_age}-#{division.max_age}"
           %td= "#{division.min_weight}-#{division.max_weight} kg"

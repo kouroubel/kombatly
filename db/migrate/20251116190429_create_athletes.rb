@@ -5,10 +5,10 @@ class CreateAthletes < ActiveRecord::Migration[7.1]
       t.string :fullname, null: false
       t.date :birthdate, null: false
       t.decimal :weight, precision: 4, scale: 1
-      t.string :belt, null: false
+      t.integer :rank, null: false
       t.string :sex, null: false
       t.string :card_number
-
+      
       t.timestamps
     end
   end

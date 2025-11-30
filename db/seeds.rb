@@ -58,22 +58,21 @@ puts "Created #{team_admins.count} team admins."
 # ------------------------------------------------------------------------------------
 # TEAMS (each with one unique team admin)
 # ------------------------------------------------------------------------------------
-team_names = [
-  "Athens Tigers",
-  "Sparta Warriors",
-  "Thessaloniki Dragons",
-  "Crete Panthers",
-  "Patras Eagles"
+team_data = [
+  { name: "Athens Tigers", organization: "Athens Sports Academy" },
+  { name: "Sparta Warriors", organization: "Spartan Martial Arts Center" },
+  { name: "Thessaloniki Dragons", organization: "Northern Greece Karate Federation" },
+  { name: "Crete Panthers", organization: "Heraklion Combat Sports Club" },
+  { name: "Patras Eagles", organization: "Achaia Athletic Association" }
 ]
 
 teams = []
-
 puts "Creating 5 teams..."
-team_names.each_with_index do |name, i|
-  team = Team.create!(name: name)
+team_data.each_with_index do |data, i|
+  team = Team.create!(name: data[:name], organization: data[:organization])
   TeamAdminRole.create!(user: team_admins[i], team: team)
   teams << team
-  puts "Created team #{team.name} with admin #{team_admins[i].email}"
+  puts "Created team #{team.name} (#{team.organization}) with admin #{team_admins[i].email}"
 end
 
 # ------------------------------------------------------------------------------------
@@ -81,57 +80,52 @@ end
 # ------------------------------------------------------------------------------------
 event = Event.create!(
   name: "Kids National Cup 2025",
-  location: "Athens Olympic Arena",
   start_date: Date.today + 30.days,
   end_date: Date.today + 30.days,
+  location: "Athens Olympic Arena",
   description: "Youth championship for ages 6–7.",
+  sport_type: "karate",
   organizer: organizer
 )
 
 puts "Created event: #{event.name}"
 
 # ------------------------------------------------------------------------------------
-# DIVISIONS (8 total = 2 sexes × 2 birth-year groups × 4 weight classes)
+# DIVISIONS (8 total = 2 sexes × 4 weight classes)
+# Ages 6-7 (born 2018-2019)
 # ------------------------------------------------------------------------------------
-
 puts "Creating divisions..."
-
 divisions_data = []
 sexes = ["Male", "Female"]
-years = [2019, 2020]
 
-# Correct weight boundaries:
-# -25kg: 0–25.0
-# -30kg: 25.1–30.0
-# -35kg: 30.1–35.0
-# +35kg: 35.1–200.0
+# Weight classes for 6-7 year olds
 weights = [
   { name: "-25kg", min: 0, max: 25.0 },
   { name: "-30kg", min: 25.1, max: 30.0 },
   { name: "-35kg", min: 30.1, max: 35.0 },
-  { name: "+35kg", min: 35.1, max: 200.0 }
+  { name: "+35kg", min: 35.1, max: 40.0 }
 ]
 
-years.each do |year|
-  sexes.each do |sex|
-    weights.each do |w|
-      divisions_data << {
-        name: "#{sex} #{year} #{w[:name]}",
-        min_age: 6,
-        max_age: 7,
-        min_weight: w[:min],
-        max_weight: w[:max],
-        belt: "White",
-        cost: 25,
-        sex: sex,
-        event: event
-      }
-    end
+sexes.each do |sex|
+  weights.each do |w|
+    divisions_data << {
+      name: "#{sex} #{w[:name]}",  # e.g., "Male -25kg"
+      sex: sex,
+      min_age: 6,
+      max_age: 7,
+      min_weight: w[:min],
+      max_weight: w[:max],
+      min_rank: 1,
+      max_rank: 10,
+      cost: 25,
+      court: rand(1..10),
+
+      event: event
+    }
   end
 end
 
 divisions = divisions_data.map { |data| Division.create!(data) }
-
 puts "Created #{divisions.count} divisions."
 
 # ------------------------------------------------------------------------------------
@@ -149,7 +143,7 @@ teams.each do |team|
   num.times do
     sex = ["Male", "Female"].sample
 
-    birth_year = [2019, 2020].sample
+    birth_year = [2018, 2019].sample
     birthdate = Date.new(birth_year, rand(1..12), rand(1..28))
 
     # Strictly enforce 25.0–38.0
@@ -166,7 +160,7 @@ teams.each do |team|
       fullname: Faker::Name.name,
       birthdate: birthdate,
       weight: weight.round(1),
-      belt: "White",
+      rank: 1,
       sex: sex,
       team: team
     )

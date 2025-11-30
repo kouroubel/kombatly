@@ -79,35 +79,6 @@ class RegistrationsController < ApplicationController
     redirect_to event_division_path(@event, @division), notice: "#{athlete.fullname} unregistered successfully"
   end
   
-  # Athlete-based registration (register ONE athlete for multiple divisions)
-  # Used by checkbox form at /athletes/:athlete_id/events/:event_id/register
-  # def new_for_athlete
-  #   @divisions = @event.divisions.select do |div|
-  #     eligible_ids = div.eligible_athletes(current_user).pluck(:id)
-  #     eligible_ids.include?(@athlete.id)
-  #   end
-    
-  #   @eligible_divisions = @athlete.divisions.where(event: @event)
-  # end
-  
-  # def create_for_athlete
-  #   division_ids = Array(params[:division_ids]).compact.map(&:to_i)
-  #   current_registered = @athlete.registrations.joins(:division).where(divisions: { event_id: @event.id })
-  #   current_division_ids = current_registered.pluck(:division_id)
-    
-  #   # Remove unchecked
-  #   (current_division_ids - division_ids).each do |div_id|
-  #     @athlete.registrations.joins(:division).find_by(divisions: { id: div_id, event_id: @event.id })&.destroy
-  #   end
-    
-  #   # Add new
-  #   (division_ids - current_division_ids).each do |div_id|
-  #     @athlete.registrations.create!(division_id: div_id)
-  #   end
-    
-  #   redirect_to athletes_path, notice: "#{@athlete.fullname} registered successfully!"
-  # end
-  
   def new_for_athlete
     # Eligible divisions for this athlete
     @eligible_divisions = @event.divisions.select do |d|

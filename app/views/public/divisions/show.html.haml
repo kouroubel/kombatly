@@ -19,8 +19,8 @@
 
       .col-md-6
         %p
-          %strong Belt:
-          %span.badge.bg-secondary= @division.belt
+          %strong Rank:
+          = "#{@division.min_rank} – #{@division.max_rank}"
 
         %p
           %strong Sex:
@@ -28,6 +28,46 @@
 
     .mt-3
       = link_to "← Back to Event", public_event_path(@division.event), class: "btn btn-secondary"
+      
+-# Registered Teams Section
+.mt-5
+  .card
+    .card-header
+      %h4.mb-0
+        %i.fa.fa-users.me-2
+        Registered Teams
+        %span.badge.bg-primary.ms-2= @teams_with_registrations.count
+    .card-body
+      - if @teams_with_registrations.any?
+        .table-responsive
+          %table.table.table-hover.table-striped
+            %thead
+              %tr
+                %th Team Name
+                %th Organization
+                %th Coach
+                %th Registered Athletes
+            %tbody
+              - @teams_with_registrations.each do |team|
+                - coach = team.team_admin_role&.user
+                - registered_count = @division.registrations.joins(:athlete).where(athletes: { team_id: team.id }).count
+                %tr
+                  %td
+                    %strong= team.name
+                  %td= team.organization
+                  %td
+                    - if coach
+                      = coach.fullname
+                      %br
+                      %small.text-muted= coach.email
+                    - else
+                      %span.text-muted No coach assigned
+                  %td
+                    %span.badge.bg-primary= registered_count
+      - else
+        .alert.alert-info.mb-0
+          %i.fa.fa-info-circle.me-2
+          No teams have registered athletes in this division yet.
 
 -# Registered Athletes Section
 .mt-4
@@ -45,7 +85,7 @@
               %tr
                 %th Name
                 %th Team
-                %th Belt
+                %th Rank
                 %th Weight
             %tbody
               - @registered_athletes.each do |athlete|
@@ -54,7 +94,7 @@
                     %strong= athlete.fullname
                   %td= athlete.team.name
                   %td
-                    %span.badge.bg-secondary= athlete.belt
+                    %span.badge.bg-secondary= athlete.rank
                   %td= "#{athlete.weight} kg"
       - else
         .alert.alert-info.mb-0

@@ -5,7 +5,9 @@ class CreateEvents < ActiveRecord::Migration[7.1]
       t.date :start_date, null: false
       t.date :end_date
       t.text :location
+      t.string :sport_type
       t.text :description
+      
       t.references :organizer, null: true, foreign_key: { to_table: :users }
       
       t.timestamps

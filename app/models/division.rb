@@ -4,6 +4,9 @@ class Division < ApplicationRecord
   has_many :athletes, through: :registrations
   has_many :bouts, dependent: :destroy
   
+  # Delegate competition_area_name to event
+  delegate :competition_area_name, :competition_area_name_plural, to: :event
+  
   def generate_complete_bracket
     athletes = registrations.map(&:athlete).shuffle
     # return if athletes.size < 2
@@ -177,10 +180,10 @@ class Division < ApplicationRecord
   # Role-based eligible athletes
   def eligible_athletes(current_user = nil)
     athletes = Athlete.joins(:team)
-                      # .where(sex: sex, belt: belt)
-                      .where(sex: sex)  #belt color not a requirement for now!!
-                      .where("EXTRACT(YEAR FROM AGE(birthdate)) BETWEEN ? AND ?", min_age, max_age)
-                      .where(weight: min_weight..max_weight)
+                        .where(sex: sex)
+                        .where("EXTRACT(YEAR FROM AGE(birthdate)) BETWEEN ? AND ?", min_age, max_age)
+                        .where(weight: min_weight..max_weight)
+                        .where(rank: min_rank..max_rank)  # Add this line!
     
     # Filter by team for team_admins (not superadmin or event organizer)
     if current_user && current_user.team_admin? && !current_user.can_manage_event?(event)

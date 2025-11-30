@@ -8,7 +8,7 @@
       %th Team
       %th Birthdate
       %th Weight
-      %th Belt
+      %th Rank
       %th Sex
       %th Actions
   %tbody
@@ -18,7 +18,7 @@
         %td= athlete.team.name
         %td= athlete.birthdate.strftime("%d.%m.%Y")
         %td= athlete.weight
-        %td= athlete.belt
+        %td= athlete.rank
         %td= athlete.sex
         %td
           = link_to "Edit", edit_athlete_path(athlete), class: "btn btn-sm btn-primary me-1"

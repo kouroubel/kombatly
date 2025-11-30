@@ -8,6 +8,11 @@ module Public
     def show
       @bouts_by_round = @division.bouts.order(:round, :id).group_by(&:round)
       @registered_athletes = @division.athletes.includes(:team).order('teams.name, athletes.fullname')
+      
+      @teams_with_registrations = Team.joins(athletes: :registrations)
+                               .where(registrations: { division_id: @division.id })
+                               .distinct
+                               .includes(:team_admin_role)
     end
     
     private

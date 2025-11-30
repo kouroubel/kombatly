@@ -19,7 +19,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_20_082017) do
     t.string "fullname", null: false
     t.date "birthdate", null: false
     t.decimal "weight", precision: 4, scale: 1
-    t.string "belt", null: false
+    t.integer "rank", null: false
     t.string "sex", null: false
     t.string "card_number"
     t.datetime "created_at", null: false
@@ -47,14 +47,17 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_20_082017) do
 
   create_table "divisions", force: :cascade do |t|
     t.string "name", null: false
-    t.bigint "event_id", null: false
-    t.decimal "cost", null: false
+    t.string "sex", null: false
     t.integer "min_age", null: false
     t.integer "max_age", null: false
-    t.decimal "min_weight", precision: 5, scale: 2
-    t.decimal "max_weight", precision: 5, scale: 2
-    t.string "belt", null: false
-    t.string "sex", null: false
+    t.decimal "min_weight", precision: 4, scale: 1
+    t.decimal "max_weight", precision: 4, scale: 1
+    t.integer "min_rank", null: false
+    t.integer "max_rank", null: false
+    t.decimal "cost", null: false
+    t.string "court"
+    t.text "description"
+    t.bigint "event_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_divisions_on_event_id"
@@ -65,6 +68,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_20_082017) do
     t.date "start_date", null: false
     t.date "end_date"
     t.text "location"
+    t.string "sport_type"
     t.text "description"
     t.bigint "organizer_id"
     t.datetime "created_at", null: false
@@ -93,6 +97,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_20_082017) do
 
   create_table "teams", force: :cascade do |t|
     t.string "name", null: false
+    t.string "organization", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

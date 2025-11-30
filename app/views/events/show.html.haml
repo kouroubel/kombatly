@@ -28,7 +28,7 @@
         %th Name
         %th Age Range
         %th Weight Range
-        %th Belt
+        %th Rank
         %th Sex
         %th Cost(€)
         - if current_user.superadmin? || (current_user.organizer? && current_user.can_manage_event?(@event))
@@ -37,24 +37,32 @@
         %th Actions
     %tbody
       - @event.divisions.each do |division|
+        - if current_user.team_admin? && current_user.administered_team.present?
+          - team_eligible = division.eligible_athletes(current_user).where(team_id: current_user.administered_team.id)
+          - team_registered = division.registrations.joins(:athlete).where(athletes: { team_id: current_user.administered_team.id })
+        
         %tr
           %td= link_to division.name, event_division_path(@event, division)
           %td= "#{division.min_age}–#{division.max_age}"
           %td= "#{division.min_weight}–#{division.max_weight} kg"
-          %td= division.belt
+          %td= "#{division.min_rank}–#{division.max_rank}"
           %td= division.sex
           %td= division.cost
           
           - if current_user.superadmin? || (current_user.organizer? && current_user.can_manage_event?(@event))
             %td= division.eligible_athletes(current_user).count
           
-          %td= division.registrations.count
+          %td
+            - if current_user.team_admin? && current_user.administered_team.present?
+              = team_registered.count
+            - else
+              = division.registrations.count
           
           %td
             - if current_user.can_manage_event?(@event)
               = link_to "Edit", edit_event_division_path(@event, division), class: "btn btn-sm btn-primary me-1"
               = link_to "Delete", event_division_path(@event, division), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-danger me-1"
-            - elsif current_user.administered_team.present?
+            - elsif current_user.team_admin? && current_user.administered_team.present? && team_eligible.any?
               = link_to "Register Athletes", new_event_division_registration_path(@event, division), class: "btn btn-sm btn-success me-1"
 
 -# ORGANIZER'S TEAM VIEW (if organizer has a team)
@@ -70,7 +78,7 @@
           %th Division
           %th Age Range
           %th Weight Range
-          %th Belt
+          %th Rank
           %th Eligible Athletes
           %th Registered Athletes
           %th Actions
@@ -83,7 +91,7 @@
               %td= link_to division.name, event_division_path(@event, division)
               %td= "#{division.min_age}–#{division.max_age}"
               %td= "#{division.min_weight}–#{division.max_weight} kg"
-              %td= division.belt
+              %td= "#{division.min_rank}–#{division.max_rank}"
               %td
                 - if team_eligible.any?
                   %span.badge.bg-success= team_eligible.count
